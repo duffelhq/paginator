@@ -19,8 +19,8 @@ defmodule Paginator.Mixfile do
   defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
-    [{:ecto, "~> 2.1"},
-     {:postgrex, "~> 0.11", optional: true},
+    [{:ecto, "~> 2.2"},
+     {:postgrex, "~> 0.13", optional: true},
      {:ex_machina, "~> 2.0", only: :test}]
   end
 end
