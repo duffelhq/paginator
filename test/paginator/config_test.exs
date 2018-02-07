@@ -5,11 +5,12 @@ defmodule Paginator.ConfigTest do
 
   describe "Config.new/2" do
     test "creates a new config" do
-      config = Config.new([
-        after: 15,
-        before: 20,
-        limit: 10
-      ])
+      config =
+        Config.new(
+          after: 15,
+          before: 20,
+          limit: 10
+        )
 
       assert config.after == 15
       assert config.before == 20

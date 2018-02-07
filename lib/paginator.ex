@@ -30,16 +30,21 @@ defmodule Paginator do
         before: before_cursor(paginated_entries, sorted_entries, config),
         after: after_cursor(paginated_entries, sorted_entries, config),
         limit: config.limit,
-        total_count: total_count(queryable, config, repo, repo_opts),
+        total_count: total_count(queryable, config, repo, repo_opts)
       }
     }
   end
 
   defp before_cursor([], [], _config), do: nil
-  defp before_cursor(_paginated_entries, _sorted_entries, %Config{after: nil, before: nil}), do: nil
-  defp before_cursor(paginated_entries, _sorted_entries, %Config{after: c_after} = config) when not is_nil(c_after) do
+
+  defp before_cursor(_paginated_entries, _sorted_entries, %Config{after: nil, before: nil}),
+    do: nil
+
+  defp before_cursor(paginated_entries, _sorted_entries, %Config{after: c_after} = config)
+       when not is_nil(c_after) do
     first_or_nil(paginated_entries, config)
   end
+
   defp before_cursor(paginated_entries, sorted_entries, config) do
     if first_page?(sorted_entries, config) do
       nil
@@ -57,9 +62,12 @@ defmodule Paginator do
   end
 
   defp after_cursor([], [], _config), do: nil
-  defp after_cursor(paginated_entries, _sorted_entries, %Config{before: c_before} = config) when not is_nil(c_before) do
+
+  defp after_cursor(paginated_entries, _sorted_entries, %Config{before: c_before} = config)
+       when not is_nil(c_before) do
     last_or_nil(paginated_entries, config)
   end
+
   defp after_cursor(paginated_entries, sorted_entries, config) do
     if last_page?(sorted_entries, config) do
       nil
@@ -76,7 +84,9 @@ defmodule Paginator do
     end
   end
 
-  defp fetch_cursor_value(schema, %Config{cursor_fetcher: nil, cursor_field: cursor_field}), do: Map.get(schema, cursor_field)
+  defp fetch_cursor_value(schema, %Config{cursor_fetcher: nil, cursor_field: cursor_field}),
+    do: Map.get(schema, cursor_field)
+
   defp fetch_cursor_value(schema, %Config{cursor_fetcher: cursor_fetcher}) do
     cursor_fetcher.(schema)
   end
@@ -96,6 +106,7 @@ defmodule Paginator do
   end
 
   defp total_count(_queryable, %Config{include_total_count: false}, _repo, _repo_opts), do: nil
+
   defp total_count(queryable, %Config{total_count_limit: total_count_limit}, repo, repo_opts) do
     result =
       queryable
@@ -119,11 +130,13 @@ defmodule Paginator do
   #
   # When we have only a before cursor, we get our results from
   # sorted_entries in reverse order due t
-  defp paginate_entries(sorted_entries, %Config{before: before, after: nil, limit: limit}) when not is_nil(before) do
+  defp paginate_entries(sorted_entries, %Config{before: before, after: nil, limit: limit})
+       when not is_nil(before) do
     sorted_entries
     |> Enum.take(limit)
     |> Enum.reverse()
   end
+
   defp paginate_entries(sorted_entries, %Config{limit: limit}) do
     Enum.take(sorted_entries, limit)
   end

@@ -4,10 +4,10 @@ defmodule Paginator.Customer do
   import Ecto.Query
 
   schema "customers" do
-    field :name, :string
-    field :active, :boolean
+    field(:name, :string)
+    field(:active, :boolean)
 
-    has_many :payments, Paginator.Payment
+    has_many(:payments, Paginator.Payment)
 
     timestamps()
   end
