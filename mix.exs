@@ -22,6 +22,7 @@ defmodule Paginator.Mixfile do
 
   defp deps do
     [
+      {:calendar, "~> 0.17.4", only: :test},
       {:ecto, "~> 2.2"},
       {:postgrex, "~> 0.13", optional: true},
       {:ex_machina, "~> 2.1", only: :test}

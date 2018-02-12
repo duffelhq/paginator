@@ -13,6 +13,7 @@ defmodule Paginator.Factory do
   def payment_factory do
     %Payment{
       description: "Skittles",
+      charged_at: DateTime.utc_now(),
       amount: :rand.uniform(100),
       status: "success",
       customer: build(:customer)

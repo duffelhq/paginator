@@ -5,7 +5,7 @@ defmodule Paginator do
 
   import Ecto.Query
 
-  alias Paginator.{Config, Ecto.Query, Page, Page.Metadata}
+  alias Paginator.{Config, Cursor, Ecto.Query, Page, Page.Metadata}
 
   defmacro __using__(opts) do
     quote do
@@ -84,8 +84,11 @@ defmodule Paginator do
     end
   end
 
-  defp fetch_cursor_value(schema, %Config{cursor_fetcher: nil, cursor_field: cursor_field}),
-    do: Map.get(schema, cursor_field)
+  defp fetch_cursor_value(schema, %Config{sort_columns: sort_columns}) do
+    sort_columns
+    |> Enum.map(fn c -> Map.get(schema, c) end)
+    |> Cursor.encode()
+  end
 
   defp fetch_cursor_value(schema, %Config{cursor_fetcher: cursor_fetcher}) do
     cursor_fetcher.(schema)

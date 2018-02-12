@@ -11,6 +11,7 @@ defmodule Paginator.TestMigration do
 
     create table(:payments) do
       add(:description, :text)
+      add(:charged_at, :utc_datetime)
       add(:amount, :integer)
       add(:status, :string)
 
