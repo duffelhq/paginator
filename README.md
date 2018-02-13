@@ -77,7 +77,7 @@ end
 * You need to add order_by clauses yourself before passing your query to `paginate/2`. In the future we might do that
 for you automatically based on the fields specified in `:cursor_fields`.
 * It is not possible to use the column from a joined resource as a cursor. This limitation will be lifted once support for
-[named joints](https://github.com/elixir-ecto/ecto/issues/2389) lands in Ecto 3.0.
+[named joins](https://github.com/elixir-ecto/ecto/issues/2389) lands in Ecto 3.0.
 * There is an outstanding issue where Postgrex fails to properly builds the query if it includes custom PostgreSQL types.
 
 ## Documentation
