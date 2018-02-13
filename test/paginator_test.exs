@@ -514,6 +514,28 @@ defmodule PaginatorTest do
   end
 
   describe "with include_total_count" do
+    test "when set to :infinity", %{
+      payments: {_p1, _p2, _p3, _p4, p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
+    } do
+      %Page{metadata: metadata} =
+        payments_by_customer_name()
+        |> Repo.paginate(
+          cursor_fields: [:id],
+          sort_direction: :asc,
+          limit: 5,
+          total_count_limit: :infinity,
+          include_total_count: true
+        )
+
+      assert metadata == %Metadata{
+               after: encode_cursor(p5.id),
+               before: nil,
+               limit: 5,
+               total_count: 12,
+               total_count_cap_exceeded: false
+             }
+    end
+
     test "when cap not exceeded", %{
       payments: {_p1, _p2, _p3, _p4, p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
