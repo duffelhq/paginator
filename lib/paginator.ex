@@ -1,6 +1,17 @@
 defmodule Paginator do
   @moduledoc """
-  Documentation for Paginator.
+  Defines a paginator.
+
+  This module adds a `paginate/3` function to your `Ecto.Repo` so that you can
+  paginate through results using opaque cursors.
+
+  ## Usage
+
+      defmodule MyApp.Repo do
+        use Ecto.Repo, otp_app: :my_app
+        use Paginator
+      end
+
   """
 
   import Ecto.Query
@@ -15,14 +26,51 @@ defmodule Paginator do
         opts = Keyword.merge(@defaults, opts)
         config = Config.new(opts)
 
+        unless config.cursor_fields,
+          do: raise("expected `:cursor_fields` to be set in call to paginate/3")
+
         Paginator.paginate(queryable, config, __MODULE__, repo_opts)
       end
     end
   end
 
+  @doc """
+  Fetches all the results matching the query within the cursors.
+
+  ## Options
+
+    * `:after` - Fetch the records after this cursor.
+    * `:before` - Fetch the records before this cursor.
+    * `:cursor_fields` - The fields used to determine the cursor. In most cases,
+    this should be the same fields as the ones used for sorting in the query.
+    * `:include_total_count` - Set this to true to return the total number of
+    records matching the query. Note that this number will be capped by
+    `:total_count_limit`. Defaults to `false`.
+    * `:limit` - Limits the number of records returned per page. Defaults to 50.
+    * `:sort_direction` - The direction used for sorting. Defaults to `:asc`.
+    * `:total_count_limit` - Running count queries on tables with a large number
+    of records is expensive so it is capped by default. Can be set to `:unlimited`
+    in order to count all the records. Defaults to 10,000.
+
+  ## Repo options
+
+  This will be passed directly to `Ecto.Repo.all/2`, as such any option supported
+  by this function can be used here.
+
+  ## Example
+
+      query = from(p in Post, order_by: [asc: p.inserted_at, asc: p.id], select: p)
+
+      Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 50)
+  """
+  @callback paginate(queryable :: Ecto.Query.t(), opts :: Keyword.t(), repo_opts :: Keyword.t()) ::
+              Paginator.Page.t()
+
+  @doc false
   def paginate(queryable, config, repo, repo_opts) do
     sorted_entries = entries(queryable, config, repo, repo_opts)
     paginated_entries = paginate_entries(sorted_entries, config)
+    {total_count, total_count_cap_exceeded} = total_count(queryable, config, repo, repo_opts)
 
     %Page{
       entries: paginated_entries,
@@ -30,7 +78,8 @@ defmodule Paginator do
         before: before_cursor(paginated_entries, sorted_entries, config),
         after: after_cursor(paginated_entries, sorted_entries, config),
         limit: config.limit,
-        total_count: total_count(queryable, config, repo, repo_opts)
+        total_count: total_count,
+        total_count_cap_exceeded: total_count_cap_exceeded
       }
     }
   end
@@ -84,14 +133,10 @@ defmodule Paginator do
     end
   end
 
-  defp fetch_cursor_value(schema, %Config{sort_columns: sort_columns}) do
-    sort_columns
-    |> Enum.map(fn c -> Map.get(schema, c) end)
+  defp fetch_cursor_value(schema, %Config{cursor_fields: cursor_fields}) do
+    cursor_fields
+    |> Enum.map(fn field -> Map.get(schema, field) end)
     |> Cursor.encode()
-  end
-
-  defp fetch_cursor_value(schema, %Config{cursor_fetcher: cursor_fetcher}) do
-    cursor_fetcher.(schema)
   end
 
   defp first_page?(sorted_entries, %Config{limit: limit}) do
@@ -108,7 +153,8 @@ defmodule Paginator do
     |> repo.all(repo_opts)
   end
 
-  defp total_count(_queryable, %Config{include_total_count: false}, _repo, _repo_opts), do: nil
+  defp total_count(_queryable, %Config{include_total_count: false}, _repo, _repo_opts),
+    do: {nil, nil}
 
   defp total_count(queryable, %Config{total_count_limit: total_count_limit}, repo, repo_opts) do
     result =
@@ -122,9 +168,9 @@ defmodule Paginator do
       |> select(count("*"))
       |> repo.one(repo_opts)
 
-    %{
-      total_count: Enum.min([result, total_count_limit]),
-      total_count_cap_exceeded: result > total_count_limit
+    {
+      Enum.min([result, total_count_limit]),
+      result > total_count_limit
     }
   end
 

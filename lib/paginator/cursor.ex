@@ -1,4 +1,6 @@
 defmodule Paginator.Cursor do
+  @moduledoc false
+
   def decode(nil), do: nil
 
   def decode(encoded_cursor) do
