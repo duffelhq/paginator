@@ -1,5 +1,7 @@
 # Paginator
 
+[![Build Status](https://travis-ci.org/duffelhq/paginator.svg?branch=master)](https://travis-ci.org/duffelhq/paginator)
+
 [Cursor based pagination](http://use-the-index-luke.com/no-offset) for Elixir [Ecto](https://github.com/elixir-ecto/ecto).
 
 [Documentation](https://hexdocs.pm/paginator)
@@ -77,3 +79,30 @@ for you automatically based on the fields specified in `:cursor_fields`.
 [named joints](https://github.com/elixir-ecto/ecto/issues/2389) lands in Ecto 3.0.
 * There is an outstanding issue where Postgrex fails to properly builds the query if it includes custom PostgreSQL types.
 
+## Documentation
+
+Documentation is written into the library, you will find it in the source code, accessible from `iex` and of course, it
+all gets published to [hexdocs](http://hexdocs.pm/paginator).
+
+## Contributing
+
+### Running tests
+
+Clone the repo and fetch its dependencies:
+
+```
+$ git clone https://github.com/duffelhq/paginator.git
+$ cd paginator
+$ mix deps.get
+$ mix test
+```
+
+### Building docs
+
+```
+$ mix docs
+```
+
+## LICENSE
+
+See [LICENSE](https://github.com/duffelhq/paginator/blob/master/LICENSE.txt)
