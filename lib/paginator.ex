@@ -49,7 +49,7 @@ defmodule Paginator do
     * `:limit` - Limits the number of records returned per page. Defaults to 50.
     * `:sort_direction` - The direction used for sorting. Defaults to `:asc`.
     * `:total_count_limit` - Running count queries on tables with a large number
-    of records is expensive so it is capped by default. Can be set to `:unlimited`
+    of records is expensive so it is capped by default. Can be set to `:infinity`
     in order to count all the records. Defaults to 10,000.
 
   ## Repo options
@@ -155,6 +155,20 @@ defmodule Paginator do
 
   defp total_count(_queryable, %Config{include_total_count: false}, _repo, _repo_opts),
     do: {nil, nil}
+
+  defp total_count(queryable, %Config{total_count_limit: :infinity}, repo, repo_opts) do
+    result =
+      queryable
+      |> exclude(:preload)
+      |> exclude(:select)
+      |> exclude(:order_by)
+      |> select([e], e.id)
+      |> subquery
+      |> select(count("*"))
+      |> repo.one(repo_opts)
+
+    {result, false}
+  end
 
   defp total_count(queryable, %Config{total_count_limit: total_count_limit}, repo, repo_opts) do
     result =
