@@ -6,29 +6,29 @@
 
 ## Getting started
 
-    ```elixir
-    defmodule MyApp.Repo do
-      use Ecto.Repo, otp_app: :my_app
-      use Paginator
-    end
+```elixir
+defmodule MyApp.Repo do
+  use Ecto.Repo, otp_app: :my_app
+  use Paginator
+end
 
-    query = from(p in Post, order_by: [asc: p.inserted_at, asc: p.id])
+query = from(p in Post, order_by: [asc: p.inserted_at, asc: p.id])
 
-    page = MyApp.Repo.paginate(cursor_fields: [:inserted_at, :id], limit: 50)
+page = MyApp.Repo.paginate(cursor_fields: [:inserted_at, :id], limit: 50)
 
-    # `page.entries` contains all the entries for this page.
-    # `page.metadata` contains the metadata associated with this page (cursors, limit, total count)
-    ```
+# `page.entries` contains all the entries for this page.
+# `page.metadata` contains the metadata associated with this page (cursors, limit, total count)
+```
 
 ## Install
 
 Add `paginator` to your list of dependencies in `mix.exs`:
 
-    ```elixir
-    def deps do
-      [{:paginator, "~> 0.1"}]
-    end
-    ```
+```elixir
+def deps do
+  [{:paginator, "~> 0.1"}]
+end
+```
 
 ## Usage
 
