@@ -7,6 +7,39 @@
 
 [Documentation](https://hexdocs.pm/paginator)
 
+## Why?
+
+There are several ways to implement pagination in a project and they all have pros and cons depending on your situation.
+
+### Limit-offset
+
+This is the easiest method to use and implement: you just have to set `LIMIT` and `OFFSET` on your queries and the
+database will return records based on this two parameters. Unfortunately, it has two major drawbacks:
+
+* Inconsistent results: if the dataset changes while you are querying, the results in the page will shift and your user
+might end seeing records they have already seen and missing new ones.
+
+* Inefficiency: `OFFSET N` instructs the database to skip the first N results of a query. However, the database must still
+fetch these rows from disk and order them before it can returns the ones requested. If the dataset you are querying is
+large this will result in significant slowdowns.
+
+### Cursor-based (a.k.a keyset pagination)
+
+This method relies on opaque cursor to figure out where to start selecting records. It is more performant than
+`LIMIT-OFFSET` because it can filter records without traversing all of them.
+
+It's also consistent, any insertions/deletions before the current page will leave results unaffected.
+
+It has some limitations though: for instance you can't jump directly to a specific page. This may
+not be an issue for an API or if you use infinite scrolling on your website.
+
+### Learn more
+
+* http://use-the-index-luke.com/no-offset
+* http://use-the-index-luke.com/sql/partial-results/fetch-next-page
+* https://www.citusdata.com/blog/2016/03/30/five-ways-to-paginate/
+* https://developer.twitter.com/en/docs/tweets/timelines/guides/working-with-timelines
+
 ## Getting started
 
 ```elixir
@@ -71,14 +104,30 @@ end
     IO.puts "total count: #{metadata.total_count}"
     ```
 
+## Indexes
+
+If you want to reap all the benefits of this method it is better that you create indexes on the columns you are using as
+cursor fields.
+
+### Example
+
+```elixir
+# If your cursor fields are: [:inserted_at, :id]
+# Add the following in a migration
+
+create index("posts", [:inserted_at, :id])
+```
+
 ## Caveats
 
-* This library has only be tested with PostgreSQL.
+* This method requires a deterministic sort order. If the columns you are currently using for sorting don't match that
+definition, just add any unique column and extend your index accordingly.
 * You need to add order_by clauses yourself before passing your query to `paginate/2`. In the future we might do that
 for you automatically based on the fields specified in `:cursor_fields`.
 * It is not possible to use the column from a joined resource as a cursor. This limitation will be lifted once support for
 [named joints](https://github.com/elixir-ecto/ecto/issues/2389) lands in Ecto 3.0.
 * There is an outstanding issue where Postgrex fails to properly builds the query if it includes custom PostgreSQL types.
+* This library has only be tested with PostgreSQL.
 
 ## Documentation
 
