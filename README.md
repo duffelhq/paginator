@@ -1,6 +1,7 @@
 # Paginator
 
 [![Build Status](https://travis-ci.org/duffelhq/paginator.svg?branch=master)](https://travis-ci.org/duffelhq/paginator)
+[![Inline docs](http://inch-ci.org/github/duffelhq/paginator.svg)](http://inch-ci.org/github/duffelhq/paginator)
 
 [Cursor based pagination](http://use-the-index-luke.com/no-offset) for Elixir [Ecto](https://github.com/elixir-ecto/ecto).
 

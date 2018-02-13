@@ -12,6 +12,8 @@ services:
 before_script:
   - psql -c "ALTER USER postgres WITH PASSWORD 'password';" -U postgres
 script: mix test
+after_script:
+  - mix inch.report
 notifications:
   recipients:
     - steve@stevedomin.com
