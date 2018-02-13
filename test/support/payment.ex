@@ -4,8 +4,9 @@ defmodule Paginator.Payment do
   import Ecto.Query
 
   schema "payments" do
-    field(:description, :string)
     field(:amount, :integer)
+    field(:charged_at, :utc_datetime)
+    field(:description, :string)
     field(:status, :string)
 
     belongs_to(:customer, Paginator.Customer)

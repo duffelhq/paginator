@@ -1,7 +1,5 @@
 defmodule Paginator.Ecto.Query do
-  @moduledoc """
-  Documentation for Paginator.Ecto.Query.
-  """
+  @moduledoc false
 
   import Ecto.Query
 
@@ -19,92 +17,116 @@ defmodule Paginator.Ecto.Query do
     paginate(queryable, Config.new(opts))
   end
 
-  defp maybe_where(query, %Config{
-         after: nil,
-         before: nil,
-         cursor_field: cursor_field,
-         sort_direction: :asc
-       }) do
-    order_by(query, asc: ^cursor_field)
+  defp filter_values(query, cursor_fields, values, operator) do
+    sorts = Enum.zip(cursor_fields, values)
+
+    sorts
+    |> Enum.with_index()
+    |> Enum.reduce(query, fn {{column, value}, i}, query ->
+      dynamic = true
+
+      dynamic =
+        case operator do
+          :lt ->
+            dynamic([q], field(q, ^column) < ^value and ^dynamic)
+
+          :gt ->
+            dynamic([q], field(q, ^column) > ^value and ^dynamic)
+        end
+
+      dynamic =
+        sorts
+        |> Enum.take(i)
+        |> Enum.reduce(dynamic, fn {prev_column, prev_value}, dynamic ->
+          dynamic([q], field(q, ^prev_column) == ^prev_value and ^dynamic)
+        end)
+
+      if i == 0 do
+        where(query, [q], ^dynamic)
+      else
+        or_where(query, [q], ^dynamic)
+      end
+    end)
   end
 
   defp maybe_where(query, %Config{
-         after: c_after,
-         before: nil,
-         cursor_field: cursor_field,
+         after_values: nil,
+         before_values: nil,
          sort_direction: :asc
        }) do
     query
-    |> where([q], field(q, ^cursor_field) > ^c_after)
-    |> order_by(asc: ^cursor_field)
   end
 
   defp maybe_where(query, %Config{
-         after: nil,
-         before: c_before,
-         cursor_field: cursor_field,
+         after_values: after_values,
+         before: nil,
+         cursor_fields: cursor_fields,
          sort_direction: :asc
        }) do
     query
-    |> where([q], field(q, ^cursor_field) < ^c_before)
+    |> filter_values(cursor_fields, after_values, :gt)
+  end
+
+  defp maybe_where(query, %Config{
+         after_values: nil,
+         before_values: before_values,
+         cursor_fields: cursor_fields,
+         sort_direction: :asc
+       }) do
+    query
+    |> filter_values(cursor_fields, before_values, :lt)
     |> reverse_order_bys()
-    |> order_by(desc: ^cursor_field)
   end
 
   defp maybe_where(query, %Config{
-         after: c_after,
-         before: c_before,
-         cursor_field: cursor_field,
+         after_values: after_values,
+         before_values: before_values,
+         cursor_fields: cursor_fields,
          sort_direction: :asc
        }) do
     query
-    |> where([q], field(q, ^cursor_field) > ^c_after)
-    |> where([q], field(q, ^cursor_field) < ^c_before)
-    |> order_by(asc: ^cursor_field)
+    |> filter_values(cursor_fields, after_values, :gt)
+    |> filter_values(cursor_fields, before_values, :lt)
   end
 
   defp maybe_where(query, %Config{
          after: nil,
          before: nil,
-         cursor_field: cursor_field,
-         sort_direction: :desc
-       }) do
-    order_by(query, desc: ^cursor_field)
-  end
-
-  defp maybe_where(query, %Config{
-         after: c_after,
-         before: nil,
-         cursor_field: cursor_field,
          sort_direction: :desc
        }) do
     query
-    |> where([q], field(q, ^cursor_field) < ^c_after)
-    |> order_by(desc: ^cursor_field)
+  end
+
+  defp maybe_where(query, %Config{
+         after_values: after_values,
+         before: nil,
+         cursor_fields: cursor_fields,
+         sort_direction: :desc
+       }) do
+    query
+    |> filter_values(cursor_fields, after_values, :lt)
   end
 
   defp maybe_where(query, %Config{
          after: nil,
-         before: c_before,
-         cursor_field: cursor_field,
+         before_values: before_values,
+         cursor_fields: cursor_fields,
          sort_direction: :desc
        }) do
     query
-    |> where([q], field(q, ^cursor_field) > ^c_before)
+    |> filter_values(cursor_fields, before_values, :gt)
     |> reverse_order_bys()
-    |> order_by(asc: ^cursor_field)
   end
 
   defp maybe_where(query, %Config{
-         after: c_after,
-         before: c_before,
-         cursor_field: cursor_field,
+         after_values: after_values,
+         before_values: before_values,
+         cursor_fields: cursor_fields,
          sort_direction: :desc
        }) do
     query
-    |> where([q], field(q, ^cursor_field) < ^c_after)
-    |> where([q], field(q, ^cursor_field) > ^c_before)
-    |> order_by(desc: ^cursor_field)
+    |> filter_values(cursor_fields, after_values, :lt)
+    |> filter_values(cursor_fields, before_values, :gt)
   end
 
   #  In order to return the correct pagination cursors, we need to fetch one more

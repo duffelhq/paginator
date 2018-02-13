@@ -1,15 +1,32 @@
 defmodule Paginator.Mixfile do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
     [
       app: :paginator,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.4",
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+
+      # Hex
+      description: description(),
+      package: package(),
+
+      # Docs
+      name: "Paginator",
+      source_url: "https://github.com/duffelhq/paginator",
+      homepage_url: "https://github.com/duffelhq/paginator",
+      docs: [
+        source_ref: "v#{@version}",
+        main: "Paginator",
+        canonical: "http://hexdocs.pm/paginator",
+        source_url: "https://github.com/duffelhq/paginator"
+      ]
     ]
   end
 
@@ -22,9 +39,25 @@ defmodule Paginator.Mixfile do
 
   defp deps do
     [
-      {:ecto, "~> 2.2"},
-      {:postgrex, "~> 0.13", optional: true},
-      {:ex_machina, "~> 2.1", only: :test}
+      {:calendar, "~> 0.17.4", only: :test},
+      {:ecto, "~> 2.0"},
+      {:ex_doc, "~> 0.18", only: :dev, runtime: false},
+      {:ex_machina, "~> 2.1", only: :test},
+      {:postgrex, "~> 0.13", optional: true}
+    ]
+  end
+
+  defp description do
+    """
+    Cursor based pagination for Elixir Ecto.
+    """
+  end
+
+  defp package do
+    [
+      maintainers: ["Steve Domin"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/duffelhq/paginator"}
     ]
   end
 end
