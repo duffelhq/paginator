@@ -14,6 +14,31 @@ defmodule Paginator.ConfigTest do
     end
   end
 
+  describe "Config.new/2 applies min/max limit" do
+    test "applies default limit" do
+      config = Config.new()
+      assert config.limit == 50
+    end
+
+    test "applies minimum limit" do
+      config = Config.new(limit: 0)
+      assert config.limit == 1
+    end
+
+    test "applies maximum limit" do
+      config = Config.new(limit: 1000)
+      assert config.limit == 500
+    end
+
+    test "respects configured maximum limit" do
+      config = Config.new(limit: 1000, maximum_limit: 2000)
+      assert config.limit == 1000
+
+      config = Config.new(limit: 3000, maximum_limit: 2000)
+      assert config.limit == 2000
+    end
+  end
+
   describe "Config.new/2 decodes cusors" do
     test "simple before" do
       config = Config.new(limit: 10, cursor_fields: [:id], before: simple_before())
