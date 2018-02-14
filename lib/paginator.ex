@@ -12,6 +12,22 @@ defmodule Paginator do
         use Paginator
       end
 
+  ## Options
+
+  `Paginator` can take any options accepted by `paginate/3`. This is useful when
+  you want to enforce some options globally across your project.
+
+  ### Example
+
+      defmodule MyApp.Repo do
+        use Ecto.Repo, otp_app: :my_app
+        use Paginator,
+          limit: 10,                  # sets the default limit to 10
+          maximum_limit: 100,         # sets the maximum limit to 100
+          include_total_count: true   # include total count by default
+      end
+
+  Note that these values can be still be overriden when `paginate/3` is called.
   """
 
   import Ecto.Query
