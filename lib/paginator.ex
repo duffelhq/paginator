@@ -46,11 +46,15 @@ defmodule Paginator do
     * `:include_total_count` - Set this to true to return the total number of
     records matching the query. Note that this number will be capped by
     `:total_count_limit`. Defaults to `false`.
-    * `:limit` - Limits the number of records returned per page. Defaults to 50.
+    * `:limit` - Limits the number of records returned per page. Note that this
+    number will be capped by `:maximum_limit`. Defaults to `50`.
+    * `:maximum_limit` - Sets a maximum cap for `:limit`. This option can be useful when `:limit`
+    is set dynamically (e.g from a URL param set by a user) but you still want to
+    enfore a maximum. Defaults to `500`.
     * `:sort_direction` - The direction used for sorting. Defaults to `:asc`.
     * `:total_count_limit` - Running count queries on tables with a large number
     of records is expensive so it is capped by default. Can be set to `:infinity`
-    in order to count all the records. Defaults to 10,000.
+    in order to count all the records. Defaults to `10,000`.
 
   ## Repo options
 

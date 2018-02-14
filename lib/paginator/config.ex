@@ -13,15 +13,17 @@ defmodule Paginator.Config do
     :cursor_fields,
     :include_total_count,
     :limit,
+    :maximum_limit,
     :sort_direction,
     :total_count_limit
   ]
 
   @default_limit 50
   @minimum_limit 1
+  @maximum_limit 500
   @default_total_count_limit 10_000
 
-  def new(opts) do
+  def new(opts \\ []) do
     %__MODULE__{
       after: opts[:after],
       after_values: Cursor.decode(opts[:after]),
@@ -29,9 +31,14 @@ defmodule Paginator.Config do
       before_values: Cursor.decode(opts[:before]),
       cursor_fields: opts[:cursor_fields],
       include_total_count: opts[:include_total_count] || false,
-      limit: max(opts[:limit] || @default_limit, @minimum_limit),
+      limit: limit(opts),
       sort_direction: opts[:sort_direction] || :asc,
       total_count_limit: opts[:total_count_limit] || @default_total_count_limit
     }
+  end
+
+  defp limit(opts) do
+    max(opts[:limit] || @default_limit, @minimum_limit)
+    |> min(opts[:maximum_limit] || @maximum_limit)
   end
 end
