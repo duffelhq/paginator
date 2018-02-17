@@ -20,33 +20,36 @@ defmodule Paginator.Ecto.Query do
   defp filter_values(query, cursor_fields, values, operator) do
     sorts = Enum.zip(cursor_fields, values)
 
-    sorts
-    |> Enum.with_index()
-    |> Enum.reduce(query, fn {{column, value}, i}, query ->
-      dynamic = true
+    dynamic_sorts =
+      sorts
+      |> Enum.with_index()
+      |> Enum.reduce(true, fn {{column, value}, i}, dynamic_sorts ->
+        dynamic = true
 
-      dynamic =
-        case operator do
-          :lt ->
-            dynamic([q], field(q, ^column) < ^value and ^dynamic)
+        dynamic =
+          case operator do
+            :lt ->
+              dynamic([q], field(q, ^column) < ^value and ^dynamic)
 
-          :gt ->
-            dynamic([q], field(q, ^column) > ^value and ^dynamic)
+            :gt ->
+              dynamic([q], field(q, ^column) > ^value and ^dynamic)
+          end
+
+        dynamic =
+          sorts
+          |> Enum.take(i)
+          |> Enum.reduce(dynamic, fn {prev_column, prev_value}, dynamic ->
+            dynamic([q], field(q, ^prev_column) == ^prev_value and ^dynamic)
+          end)
+
+        if i == 0 do
+          dynamic([q], ^dynamic and ^dynamic_sorts)
+        else
+          dynamic([q], ^dynamic or ^dynamic_sorts)
         end
+      end)
 
-      dynamic =
-        sorts
-        |> Enum.take(i)
-        |> Enum.reduce(dynamic, fn {prev_column, prev_value}, dynamic ->
-          dynamic([q], field(q, ^prev_column) == ^prev_value and ^dynamic)
-        end)
-
-      if i == 0 do
-        where(query, [q], ^dynamic)
-      else
-        or_where(query, [q], ^dynamic)
-      end
-    end)
+    where(query, [q], ^dynamic_sorts)
   end
 
   defp maybe_where(query, %Config{
