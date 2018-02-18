@@ -1,7 +1,8 @@
 defmodule Paginator.ConfigTest do
   use ExUnit.Case, async: true
 
-  alias Paginator.{Config, Cursor}
+  alias Paginator.Config
+  alias Paginator.Cursors.UnencryptedCursor, as: Cursor
 
   describe "Config.new/2" do
     test "creates a new config" do

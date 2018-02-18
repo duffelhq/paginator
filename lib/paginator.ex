@@ -32,7 +32,7 @@ defmodule Paginator do
 
   import Ecto.Query
 
-  alias Paginator.{Config, Cursor, Ecto.Query, Page, Page.Metadata}
+  alias Paginator.{Config, Ecto.Query, Page, Page.Metadata}
 
   defmacro __using__(opts) do
     quote do
@@ -153,10 +153,10 @@ defmodule Paginator do
     end
   end
 
-  defp fetch_cursor_value(schema, %Config{cursor_fields: cursor_fields}) do
+  defp fetch_cursor_value(schema, %Config{cursor_fields: cursor_fields, cursor_module: cursor_module}) do
     cursor_fields
     |> Enum.map(fn field -> Map.get(schema, field) end)
-    |> Cursor.encode()
+    |> cursor_module.encode()
   end
 
   defp first_page?(sorted_entries, %Config{limit: limit}) do

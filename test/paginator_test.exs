@@ -3,7 +3,7 @@ defmodule PaginatorTest do
 
   alias Calendar.DateTime, as: DT
 
-  alias Paginator.Cursor
+  alias Paginator.Cursors.UnencryptedCursor, as: Cursor
 
   setup :create_customers_and_payments
 
