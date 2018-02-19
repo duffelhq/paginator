@@ -290,12 +290,12 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       assert %Page{entries: [], metadata: _metadata} =
-               customer_payments_by_amount(c1)
-               |> Repo.paginate(
-                 cursor_fields: [:amount, :charged_at, :id],
-                 before: encode_cursor([p6.amount, p6.charged_at, p6.id]),
-                 limit: 1
-               )
+        customer_payments_by_amount(c1)
+        |> Repo.paginate(
+          cursor_fields: [:amount, :charged_at, :id],
+          before: encode_cursor([p6.amount, p6.charged_at, p6.id]),
+          limit: 1
+        )
     end
   end
 
