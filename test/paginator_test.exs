@@ -273,7 +273,7 @@ defmodule PaginatorTest do
     end
   end
 
-  describe "paginate a collection of payments with customer filter, sorting by customer name" do
+  describe "paginate a collection of payments with customer filter, sorting by amount, charged_at" do
     test "multiple cursor_fields with pre-existing where filter in query", %{
       customers: {c1, _c2, _c3},
       payments: {_p1, _p2, _p3, _p4, p5, p6, p7, p8, _p9, _p10, _p11, _p12}
@@ -289,7 +289,7 @@ defmodule PaginatorTest do
       customers: {c1, _c2, _c3},
       payments: {_p1, _p2, _p3, _p4, _p5, p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
-      %Page{entries: [], metadata: _metadata} =
+      assert %Page{entries: [], metadata: _metadata} =
         customer_payments_by_amount(c1)
         |> Repo.paginate(
           cursor_fields: [:amount, :charged_at, :id],
