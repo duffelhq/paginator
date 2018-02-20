@@ -273,6 +273,32 @@ defmodule PaginatorTest do
     end
   end
 
+  describe "paginate a collection of payments with customer filter, sorting by amount, charged_at" do
+    test "multiple cursor_fields with pre-existing where filter in query", %{
+      customers: {c1, _c2, _c3},
+      payments: {_p1, _p2, _p3, _p4, p5, p6, p7, p8, _p9, _p10, _p11, _p12}
+    } do
+      %Page{entries: entries, metadata: _metadata} =
+        customer_payments_by_amount(c1)
+        |> Repo.paginate(cursor_fields: [:amount, :charged_at, :id], limit: 50)
+
+      assert to_ids(entries) == to_ids([p6, p5, p7, p8])
+    end
+
+    test "before cursor with multiple cursor_fields and pre-existing where filter in query", %{
+      customers: {c1, _c2, _c3},
+      payments: {_p1, _p2, _p3, _p4, _p5, p6, _p7, _p8, _p9, _p10, _p11, _p12}
+    } do
+      assert %Page{entries: [], metadata: _metadata} =
+               customer_payments_by_amount(c1)
+               |> Repo.paginate(
+                 cursor_fields: [:amount, :charged_at, :id],
+                 before: encode_cursor([p6.amount, p6.charged_at, p6.id]),
+                 limit: 1
+               )
+    end
+  end
+
   describe "paginate a collection of payments, sorting by customer name" do
     @tag :skip
     test "sorts ascending without cursors", %{
@@ -590,12 +616,12 @@ defmodule PaginatorTest do
     p1 = insert(:payment, customer: c2, charged_at: days_ago(11))
     p2 = insert(:payment, customer: c2, charged_at: days_ago(6))
     p3 = insert(:payment, customer: c2, charged_at: days_ago(8))
-    p4 = insert(:payment, customer: c2, charged_at: days_ago(12))
+    p4 = insert(:payment, customer: c2, amount: 2, charged_at: days_ago(12))
 
-    p5 = insert(:payment, customer: c1, charged_at: days_ago(13))
-    p6 = insert(:payment, customer: c1, charged_at: days_ago(10))
-    p7 = insert(:payment, customer: c1, charged_at: days_ago(9))
-    p8 = insert(:payment, customer: c1, charged_at: days_ago(4))
+    p5 = insert(:payment, customer: c1, amount: 3, charged_at: days_ago(13))
+    p6 = insert(:payment, customer: c1, amount: 2, charged_at: days_ago(10))
+    p7 = insert(:payment, customer: c1, amount: 4, charged_at: days_ago(9))
+    p8 = insert(:payment, customer: c1, amount: 5, charged_at: days_ago(4))
 
     p9 = insert(:payment, customer: c3, charged_at: days_ago(3))
     p10 = insert(:payment, customer: c3, charged_at: days_ago(7))
@@ -628,6 +654,14 @@ defmodule PaginatorTest do
       join: c in assoc(p, :customer),
       order_by: [{^direction, c.name}, {^direction, p.id}],
       select: p
+    )
+  end
+
+  defp customer_payments_by_amount(customer, direction \\ :asc) do
+    from(
+      p in Payment,
+      where: p.customer_id == ^customer.id,
+      order_by: [{^direction, p.amount}, {^direction, p.charged_at}, {^direction, p.id}]
     )
   end
 
