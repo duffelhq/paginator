@@ -153,10 +153,10 @@ defmodule Paginator do
     end
   end
 
-  defp fetch_cursor_value(schema, %Config{cursor_fields: cursor_fields, cursor_module: cursor_module}) do
+  defp fetch_cursor_value(schema, %Config{cursor_fields: cursor_fields, cursor_module: cursor_module, cursor_module_opts: cursor_module_opts}) do
     cursor_fields
     |> Enum.map(fn field -> Map.get(schema, field) end)
-    |> cursor_module.encode()
+    |> cursor_module.encode(cursor_module_opts)
   end
 
   defp first_page?(sorted_entries, %Config{limit: limit}) do
