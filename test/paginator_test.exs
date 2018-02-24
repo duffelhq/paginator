@@ -667,20 +667,22 @@ defmodule PaginatorTest do
       customers: {c1, _c2, _c3},
       key: key
     } do
-      assert_raise RuntimeError, "error decoding `:after` cursor", fn ->
-        customer_payments_by_amount(c1)
-        |> Repo.paginate(
-          cursor_fields: [:amount, :charged_at, :id],
-          after: "badcursor",
-          sort_direction: :asc,
-          limit: 1,
-          cursor_module: EncryptedCursor,
-          cursor_module_opts: [
-            encryption_key: key,
-            signing_key: key
-          ]
-        )
-      end
+      assert_raise RuntimeError,
+                   "error decoding `:after` cursor (Could not decode encrypted cursor)",
+                   fn ->
+                     customer_payments_by_amount(c1)
+                     |> Repo.paginate(
+                       cursor_fields: [:amount, :charged_at, :id],
+                       after: "badcursor",
+                       sort_direction: :asc,
+                       limit: 1,
+                       cursor_module: EncryptedCursor,
+                       cursor_module_opts: [
+                         encryption_key: key,
+                         signing_key: key
+                       ]
+                     )
+                   end
     end
   end
 
