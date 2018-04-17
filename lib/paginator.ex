@@ -32,7 +32,7 @@ defmodule Paginator do
 
   import Ecto.Query
 
-  alias Paginator.{Config, Cursor, Ecto.Query, Page, Page.Metadata}
+  alias Paginator.{Config, Ecto.Query, Page, Page.Metadata}
 
   defmacro __using__(opts) do
     quote do
@@ -42,8 +42,19 @@ defmodule Paginator do
         opts = Keyword.merge(@defaults, opts)
         config = Config.new(opts)
 
-        unless config.cursor_fields,
-          do: raise("expected `:cursor_fields` to be set in call to paginate/3")
+        case config do
+          %{cursor_fields: nil} ->
+            raise("expected `:cursor_fields` to be set in call to paginate/3")
+
+          %{after_values: {:error, err}} ->
+            raise("error decoding `:after` cursor (#{err})")
+
+          %{before_values: {:error, err}} ->
+            raise("error decoding `:before` cursor (#{err})")
+
+          _ ->
+            nil
+        end
 
         Paginator.paginate(queryable, config, __MODULE__, repo_opts)
       end
@@ -153,10 +164,14 @@ defmodule Paginator do
     end
   end
 
-  defp fetch_cursor_value(schema, %Config{cursor_fields: cursor_fields}) do
+  defp fetch_cursor_value(schema, %Config{
+         cursor_fields: cursor_fields,
+         cursor_module: cursor_module,
+         cursor_module_opts: cursor_module_opts
+       }) do
     cursor_fields
     |> Enum.map(fn field -> Map.get(schema, field) end)
-    |> Cursor.encode()
+    |> cursor_module.encode!(cursor_module_opts)
   end
 
   defp first_page?(sorted_entries, %Config{limit: limit}) do

@@ -3,7 +3,9 @@ defmodule PaginatorTest do
 
   alias Calendar.DateTime, as: DT
 
-  alias Paginator.Cursor
+  alias Paginator.Cursors.UnencryptedCursor, as: Cursor
+  alias Paginator.Cursors.EncryptedCursor
+  alias Plug.Crypto.KeyGenerator
 
   setup :create_customers_and_payments
 
@@ -606,6 +608,84 @@ defmodule PaginatorTest do
     end
   end
 
+  describe "with custom encrypted cursor_module" do
+    setup :generate_keys
+
+    defp generate_keys(_context) do
+      secret_key_base = "PwGqIq85ScEflB9/3SpHjEHb44uTMFVGP+vleZTSr63NvPkWwHIAtGzgjpLvjDbA"
+      salt = "usersalt"
+
+      {:ok,
+       key:
+         KeyGenerator.generate(
+           secret_key_base,
+           salt,
+           iterations: 1000,
+           length: 32,
+           digest: :sha256
+         )}
+    end
+
+    test "encrypted cursor", %{
+      customers: {c1, _c2, _c3},
+      payments: {_p1, _p2, _p3, _p4, p5, p6, p7, p8, _p9, _p10, _p11, _p12},
+      key: key
+    } do
+      %Page{entries: entries, metadata: %{after: after_cursor}} =
+        customer_payments_by_amount(c1)
+        |> Repo.paginate(
+          cursor_fields: [:amount, :charged_at, :id],
+          sort_direction: :asc,
+          limit: 1,
+          cursor_module: EncryptedCursor,
+          cursor_module_opts: [
+            encryption_key: key,
+            signing_key: key
+          ]
+        )
+
+      assert to_ids(entries) == to_ids([p6])
+
+      %Page{entries: entries} =
+        customer_payments_by_amount(c1)
+        |> Repo.paginate(
+          after: after_cursor,
+          cursor_fields: [:amount, :charged_at, :id],
+          sort_direction: :asc,
+          limit: 3,
+          cursor_module: EncryptedCursor,
+          cursor_module_opts: [
+            encryption_key: key,
+            signing_key: key
+          ]
+        )
+
+      assert to_ids(entries) == to_ids([p5, p7, p8])
+    end
+
+    test "decoding cursor raises error", %{
+      customers: {c1, _c2, _c3},
+      key: key
+    } do
+      assert_raise RuntimeError,
+                   "error decoding `:after` cursor (Could not decode encrypted cursor)",
+                   fn ->
+                     customer_payments_by_amount(c1)
+                     |> Repo.paginate(
+                       cursor_fields: [:amount, :charged_at, :id],
+                       after: "badcursor",
+                       sort_direction: :asc,
+                       limit: 1,
+                       cursor_module: EncryptedCursor,
+                       cursor_module_opts: [
+                         encryption_key: key,
+                         signing_key: key
+                       ]
+                     )
+                   end
+    end
+  end
+
   defp to_ids(entries), do: Enum.map(entries, & &1.id)
 
   defp create_customers_and_payments(_context) do
@@ -666,7 +746,7 @@ defmodule PaginatorTest do
   end
 
   defp encode_cursor(value) do
-    Cursor.encode(value)
+    Cursor.encode!(value)
   end
 
   defp days_ago(days) do
