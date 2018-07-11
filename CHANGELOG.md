@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4 - 2018-07-11
+
+### Fixed
+
+* Fix potential DoS attack by using the `safe` option during decoding of cursors. ([#16](https://github.com/duffelhq/paginator/pull/16), thanks! @dbhobbs)
+
 ## v0.3.1 - 2018-02-20
 
 ### Fixed
