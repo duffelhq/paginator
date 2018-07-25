@@ -24,7 +24,8 @@ defmodule Paginator do
         use Paginator,
           limit: 10,                  # sets the default limit to 10
           maximum_limit: 100,         # sets the maximum limit to 100
-          include_total_count: true   # include total count by default
+          include_total_count: true,  # include total count by default
+          primary_key: :uuid          # sets the primary_key to uuid for calculate total_count
       end
 
   Note that these values can be still be overriden when `paginate/3` is called.
@@ -62,6 +63,7 @@ defmodule Paginator do
     * `:include_total_count` - Set this to true to return the total number of
     records matching the query. Note that this number will be capped by
     `:total_count_limit`. Defaults to `false`.
+    * `:primary_key` - Running count queries on specified column of the table
     * `:limit` - Limits the number of records returned per page. Note that this
     number will be capped by `:maximum_limit`. Defaults to `50`.
     * `:maximum_limit` - Sets a maximum cap for `:limit`. This option can be useful when `:limit`

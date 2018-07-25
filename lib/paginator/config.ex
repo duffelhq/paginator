@@ -6,13 +6,13 @@ defmodule Paginator.Config do
   @type t :: %__MODULE__{}
 
   defstruct [
-    :primary_key,
     :after,
     :after_values,
     :before,
     :before_values,
     :cursor_fields,
     :include_total_count,
+    :primary_key,
     :limit,
     :maximum_limit,
     :sort_direction,
@@ -27,13 +27,13 @@ defmodule Paginator.Config do
 
   def new(opts \\ []) do
     %__MODULE__{
-      primary_key: opts[:primary_key] || @default_primary_key,
       after: opts[:after],
       after_values: Cursor.decode(opts[:after]),
       before: opts[:before],
       before_values: Cursor.decode(opts[:before]),
       cursor_fields: opts[:cursor_fields],
       include_total_count: opts[:include_total_count] || false,
+      primary_key: opts[:primary_key] || @default_primary_key,
       limit: limit(opts),
       sort_direction: opts[:sort_direction] || :asc,
       total_count_limit: opts[:total_count_limit] || @default_total_count_limit
