@@ -6,6 +6,7 @@ defmodule Paginator.Config do
   @type t :: %__MODULE__{}
 
   defstruct [
+    :primary_key,
     :after,
     :after_values,
     :before,
@@ -18,6 +19,7 @@ defmodule Paginator.Config do
     :total_count_limit
   ]
 
+  @default_primary_key :id
   @default_limit 50
   @minimum_limit 1
   @maximum_limit 500
@@ -25,6 +27,7 @@ defmodule Paginator.Config do
 
   def new(opts \\ []) do
     %__MODULE__{
+      primary_key: opts[:primary_key] || @default_primary_key,
       after: opts[:after],
       after_values: Cursor.decode(opts[:after]),
       before: opts[:before],
