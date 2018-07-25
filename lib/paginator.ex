@@ -176,13 +176,13 @@ defmodule Paginator do
   defp total_count(_queryable, %Config{include_total_count: false}, _repo, _repo_opts),
     do: {nil, nil}
 
-  defp total_count(queryable, %Config{total_count_limit: :infinity}, repo, repo_opts) do
+  defp total_count(queryable, %Config{total_count_limit: :infinity, primary_key: primary_key}, repo, repo_opts) do
     result =
       queryable
       |> exclude(:preload)
       |> exclude(:select)
       |> exclude(:order_by)
-      |> select([e], e.id)
+      |> select([e], struct(e, [primary_key]))
       |> subquery
       |> select(count("*"))
       |> repo.one(repo_opts)
@@ -190,14 +190,14 @@ defmodule Paginator do
     {result, false}
   end
 
-  defp total_count(queryable, %Config{total_count_limit: total_count_limit}, repo, repo_opts) do
+  defp total_count(queryable, %Config{total_count_limit: total_count_limit, primary_key: primary_key}, repo, repo_opts) do
     result =
       queryable
       |> exclude(:preload)
       |> exclude(:select)
       |> exclude(:order_by)
       |> limit(^(total_count_limit + 1))
-      |> select([e], e.id)
+      |> select([e], struct(e, [primary_key]))
       |> subquery
       |> select(count("*"))
       |> repo.one(repo_opts)
