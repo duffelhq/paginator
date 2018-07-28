@@ -605,7 +605,7 @@ defmodule PaginatorTest do
              }
     end
 
-    test "when custom primary_key", %{
+    test "when custom total_count_primary_key_field", %{
       addresses: {_a1, a2, _a3}
     } do
       %Page{metadata: metadata} =
@@ -615,7 +615,7 @@ defmodule PaginatorTest do
           sort_direction: :asc,
           limit: 2,
           include_total_count: true,
-          primary_key: :city
+          total_count_primary_key_field: :city
         )
 
       assert metadata == %Metadata{
