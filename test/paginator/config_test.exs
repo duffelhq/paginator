@@ -18,6 +18,7 @@ defmodule Paginator.ConfigTest do
     test "applies default limit" do
       config = Config.new()
       assert config.limit == 50
+      assert config.total_count_primary_key_field == :id
     end
 
     test "applies minimum limit" do

@@ -22,9 +22,10 @@ defmodule Paginator do
       defmodule MyApp.Repo do
         use Ecto.Repo, otp_app: :my_app
         use Paginator,
-          limit: 10,                  # sets the default limit to 10
-          maximum_limit: 100,         # sets the maximum limit to 100
-          include_total_count: true   # include total count by default
+          limit: 10,                           # sets the default limit to 10
+          maximum_limit: 100,                  # sets the maximum limit to 100
+          include_total_count: true,           # include total count by default
+          total_count_primary_key_field: :uuid # sets the total_count_primary_key_field to uuid for calculate total_count
       end
 
   Note that these values can be still be overriden when `paginate/3` is called.
@@ -62,6 +63,7 @@ defmodule Paginator do
     * `:include_total_count` - Set this to true to return the total number of
     records matching the query. Note that this number will be capped by
     `:total_count_limit`. Defaults to `false`.
+    * `:total_count_primary_key_field` - Running count queries on specified column of the table
     * `:limit` - Limits the number of records returned per page. Note that this
     number will be capped by `:maximum_limit`. Defaults to `50`.
     * `:maximum_limit` - Sets a maximum cap for `:limit`. This option can be useful when `:limit`
@@ -176,13 +178,13 @@ defmodule Paginator do
   defp total_count(_queryable, %Config{include_total_count: false}, _repo, _repo_opts),
     do: {nil, nil}
 
-  defp total_count(queryable, %Config{total_count_limit: :infinity}, repo, repo_opts) do
+  defp total_count(queryable, %Config{total_count_limit: :infinity, total_count_primary_key_field: total_count_primary_key_field}, repo, repo_opts) do
     result =
       queryable
       |> exclude(:preload)
       |> exclude(:select)
       |> exclude(:order_by)
-      |> select([e], e.id)
+      |> select([e], struct(e, [total_count_primary_key_field]))
       |> subquery
       |> select(count("*"))
       |> repo.one(repo_opts)
@@ -190,14 +192,14 @@ defmodule Paginator do
     {result, false}
   end
 
-  defp total_count(queryable, %Config{total_count_limit: total_count_limit}, repo, repo_opts) do
+  defp total_count(queryable, %Config{total_count_limit: total_count_limit, total_count_primary_key_field: total_count_primary_key_field}, repo, repo_opts) do
     result =
       queryable
       |> exclude(:preload)
       |> exclude(:select)
       |> exclude(:order_by)
       |> limit(^(total_count_limit + 1))
-      |> select([e], e.id)
+      |> select([e], struct(e, [total_count_primary_key_field]))
       |> subquery
       |> select(count("*"))
       |> repo.one(repo_opts)

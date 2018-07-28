@@ -19,5 +19,11 @@ defmodule Paginator.TestMigration do
 
       timestamps()
     end
+
+    create table(:addresses, primary_key: false) do
+      add(:city, :string, primary_key: true)
+
+      add(:customer_id, references(:customers))
+    end
   end
 end

@@ -604,6 +604,28 @@ defmodule PaginatorTest do
                total_count_cap_exceeded: true
              }
     end
+
+    test "when custom total_count_primary_key_field", %{
+      addresses: {_a1, a2, _a3}
+    } do
+      %Page{metadata: metadata} =
+        from(a in Address, select: a)
+        |> Repo.paginate(
+          cursor_fields: [:city],
+          sort_direction: :asc,
+          limit: 2,
+          include_total_count: true,
+          total_count_primary_key_field: :city
+        )
+
+      assert metadata == %Metadata{
+               after: encode_cursor(a2.city),
+               before: nil,
+               limit: 2,
+               total_count: 3,
+               total_count_cap_exceeded: false
+             }
+    end
   end
 
   defp to_ids(entries), do: Enum.map(entries, & &1.id)
@@ -612,6 +634,10 @@ defmodule PaginatorTest do
     c1 = insert(:customer, %{name: "Bob"})
     c2 = insert(:customer, %{name: "Alice"})
     c3 = insert(:customer, %{name: "Charlie"})
+
+    a1 = insert(:address, city: "London", customer: c1)
+    a2 = insert(:address, city: "New York", customer: c2)
+    a3 = insert(:address, city: "Tokyo", customer: c3)
 
     p1 = insert(:payment, customer: c2, charged_at: days_ago(11))
     p2 = insert(:payment, customer: c2, charged_at: days_ago(6))
@@ -628,7 +654,7 @@ defmodule PaginatorTest do
     p11 = insert(:payment, customer: c3, charged_at: days_ago(2))
     p12 = insert(:payment, customer: c3, charged_at: days_ago(5))
 
-    {:ok, customers: {c1, c2, c3}, payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}}
+    {:ok, customers: {c1, c2, c3}, addresses: {a1, a2, a3}, payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}}
   end
 
   defp payments_by_status(status, direction \\ :asc) do
