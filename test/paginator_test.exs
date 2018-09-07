@@ -515,6 +515,26 @@ defmodule PaginatorTest do
       assert to_ids(entries) == to_ids([])
       assert metadata == %Metadata{after: nil, before: nil, limit: 8}
     end
+
+    test "sorts with respect to nil values", %{
+      payments: {_p1, _p2, _p3, _p4, _p5, _p6, p7, _p8, _p9, _p10, p11, _p12} = payments
+    } do
+      %Page{entries: entries, metadata: metadata} =
+        payments_by_charged_at(:desc)
+        |> Repo.paginate(
+          cursor_fields: [:charged_at, :id],
+          sort_direction: :desc,
+          after: encode_cursor([nil, nil]),
+          limit: 8
+        )
+
+        assert Enum.count(entries) == 8
+        assert metadata == %Metadata{
+          before: encode_cursor([p11.charged_at, p11.id]),
+          limit: 8,
+          after: encode_cursor([p7.charged_at, p7.id])
+        }
+    end
   end
 
   test "applies a default limit if none is provided", %{
