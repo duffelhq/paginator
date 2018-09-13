@@ -91,7 +91,7 @@ end
     # return the next 50 posts
     %{entries: entries, metadata: metadata} = Repo.paginate(query, after: cursor_after, cursor_fields: [:inserted_at, :id], limit: 50)
 
-    # assign the `after` cursor to a variable
+    # assign the `before` cursor to a variable
     cursor_before = metadata.before
 
     # return the previous 50 posts (if no post was created in between it should be the same list as in our first call to `paginate`)
