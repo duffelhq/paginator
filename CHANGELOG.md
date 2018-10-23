@@ -1,6 +1,12 @@
 # Changelog
 
-## v0.4 - 2018-07-11
+## v0.4.1 - 2018-10-23
+
+### Fixed
+
+* Fix argument error when trying to use `nil` cursors. ([#24](https://github.com/duffelhq/paginator/pull/24), thanks! @0nkery)
+
+## v0.4.0 - 2018-07-11
 
 ### Fixed
 
