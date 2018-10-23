@@ -18,7 +18,10 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp filter_values(query, cursor_fields, values, operator) do
-    sorts = Enum.zip(cursor_fields, values)
+    sorts =
+      cursor_fields
+      |> Enum.zip(values)
+      |> Enum.reject(fn val -> match?({_column, nil}, val) end)
 
     dynamic_sorts =
       sorts
