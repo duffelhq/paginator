@@ -41,12 +41,8 @@ defmodule Paginator do
 
       def paginate(queryable, opts \\ [], repo_opts \\ []) do
         opts = Keyword.merge(@defaults, opts)
-        config = Config.new(opts)
 
-        unless config.cursor_fields,
-          do: raise("expected `:cursor_fields` to be set in call to paginate/3")
-
-        Paginator.paginate(queryable, config, __MODULE__, repo_opts)
+        Paginator.paginate(queryable, opts, __MODULE__, repo_opts)
       end
     end
   end
@@ -89,7 +85,12 @@ defmodule Paginator do
               Paginator.Page.t()
 
   @doc false
-  def paginate(queryable, config, repo, repo_opts) do
+  def paginate(queryable, opts, repo, repo_opts) do
+    config = Config.new(opts)
+
+    unless config.cursor_fields,
+      do: raise("expected `:cursor_fields` to be set in call to paginate/3")
+
     sorted_entries = entries(queryable, config, repo, repo_opts)
     paginated_entries = paginate_entries(sorted_entries, config)
     {total_count, total_count_cap_exceeded} = total_count(queryable, config, repo, repo_opts)
