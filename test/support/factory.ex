@@ -21,7 +21,8 @@ defmodule Paginator.Factory do
     %Payment{
       description: "Skittles",
       charged_at: DateTime.utc_now(),
-      amount: :rand.uniform(100),
+      # +10 so it doesn't mess with low amounts we want to order on.
+      amount: :rand.uniform(100) + 10,
       status: "success",
       customer: build(:customer)
     }

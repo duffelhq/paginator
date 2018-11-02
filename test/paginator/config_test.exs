@@ -10,7 +10,7 @@ defmodule Paginator.ConfigTest do
       assert config.after_values == nil
       assert config.before_values == nil
       assert config.limit == 10
-      assert config.cursor_fields == [:id]
+      assert config.cursor_fields == [id: :asc]
     end
   end
 
@@ -47,7 +47,7 @@ defmodule Paginator.ConfigTest do
       assert config.after_values == nil
       assert config.before_values == ["pay_789"]
       assert config.limit == 10
-      assert config.cursor_fields == [:id]
+      assert config.cursor_fields == [id: :asc]
     end
 
     test "simple after" do
@@ -56,7 +56,7 @@ defmodule Paginator.ConfigTest do
       assert config.after_values == ["pay_123"]
       assert config.before_values == nil
       assert config.limit == 10
-      assert config.cursor_fields == [:id]
+      assert config.cursor_fields == [id: :asc]
     end
 
     test "complex before" do
@@ -65,7 +65,7 @@ defmodule Paginator.ConfigTest do
       assert config.after_values == nil
       assert config.before_values == ["2036-02-09T20:00:00.000Z", "pay_789"]
       assert config.limit == 10
-      assert config.cursor_fields == [:created_at, :id]
+      assert config.cursor_fields == [created_at: :asc, id: :asc]
     end
 
     test "complex after" do
@@ -74,7 +74,7 @@ defmodule Paginator.ConfigTest do
       assert config.after_values == ["2036-02-09T20:00:00.000Z", "pay_123"]
       assert config.before_values == nil
       assert config.limit == 10
-      assert config.cursor_fields == [:created_at, :id]
+      assert config.cursor_fields == [created_at: :asc, id: :asc]
     end
   end
 

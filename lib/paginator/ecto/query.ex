@@ -14,22 +14,15 @@ defmodule Paginator.Ecto.Query do
   end
 
   def paginate(queryable, opts) do
-    paginate(queryable, Config.new(opts))
+    config = Config.new(opts)
+    paginate(queryable, config)
   end
 
-  defp filter_values(query, cursor_fields, values, :lt) do
-    operator_list = Enum.map(cursor_fields, fn x -> {x, :lt} end)
-    filter_values(query, cursor_fields, values, operator_list)
-  end
+  defp filter_values(query, cursor_fields, values) do
+    fields = Keyword.keys(cursor_fields)
 
-  defp filter_values(query, cursor_fields, values, :gt) do
-    operator_list = Enum.map(cursor_fields, fn x -> {x, :gt} end)
-    filter_values(query, cursor_fields, values, operator_list)
-  end
-
-  defp filter_values(query, cursor_fields, values, operators) when is_list(operators) do
     sorts =
-      cursor_fields
+      fields
       |> Enum.zip(values)
       |> Enum.reject(fn val -> match?({_column, nil}, val) end)
 
@@ -40,7 +33,7 @@ defmodule Paginator.Ecto.Query do
         dynamic = true
 
         dynamic =
-          case Keyword.get(operators, column) do
+          case Keyword.get(cursor_fields, column) do
             :lt ->
               dynamic([q], field(q, ^column) < ^value and ^dynamic)
 
@@ -66,93 +59,11 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp maybe_where(query, %Config{
-         after_values: nil,
-         before_values: nil,
-         sort_direction: :asc
-       }) do
-    query
-  end
-
-  defp maybe_where(query, %Config{
-         after_values: after_values,
-         before: nil,
-         cursor_fields: cursor_fields,
-         sort_direction: :asc
-       }) do
-    query
-    |> filter_values(cursor_fields, after_values, :gt)
-  end
-
-  defp maybe_where(query, %Config{
-         after_values: nil,
-         before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: :asc
-       }) do
-    query
-    |> filter_values(cursor_fields, before_values, :lt)
-    |> reverse_order_bys()
-  end
-
-  defp maybe_where(query, %Config{
-         after_values: after_values,
-         before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: :asc
-       }) do
-    query
-    |> filter_values(cursor_fields, after_values, :gt)
-    |> filter_values(cursor_fields, before_values, :lt)
-  end
-
-  defp maybe_where(query, %Config{
          after: nil,
          before: nil,
-         sort_direction: :desc
+         cursor_fields: cursor_fields
        }) do
-    query
-  end
-
-  defp maybe_where(query, %Config{
-         after_values: after_values,
-         before: nil,
-         cursor_fields: cursor_fields,
-         sort_direction: :desc
-       }) do
-    query
-    |> filter_values(cursor_fields, after_values, :lt)
-  end
-
-  defp maybe_where(query, %Config{
-         after: nil,
-         before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: :desc
-       }) do
-    query
-    |> filter_values(cursor_fields, before_values, :gt)
-    |> reverse_order_bys()
-  end
-
-  defp maybe_where(query, %Config{
-         after_values: after_values,
-         before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: :desc
-       }) do
-    query
-    |> filter_values(cursor_fields, after_values, :lt)
-    |> filter_values(cursor_fields, before_values, :gt)
-  end
-
-  defp maybe_where(query, %Config{
-         after: nil,
-         before: nil,
-         cursor_fields: cursor_fields,
-         sort_direction: sort_direction
-       })
-       when is_list(sort_direction) do
-    validate_sort_direction_list!(sort_direction, cursor_fields)
+    validate_cursor_fields!(cursor_fields)
 
     query
   end
@@ -160,34 +71,28 @@ defmodule Paginator.Ecto.Query do
   defp maybe_where(query, %Config{
          after_values: after_values,
          before: nil,
-         cursor_fields: cursor_fields,
-         sort_direction: sort_direction
-       })
-       when is_list(sort_direction) do
-    validate_sort_direction_list!(sort_direction, cursor_fields)
+         cursor_fields: cursor_fields
+       }) do
+    validate_cursor_fields!(cursor_fields)
 
     query
     |> filter_values(
-      cursor_fields,
-      after_values,
-      convert_sort_direction_list(sort_direction, :before)
+      convert_cursor_fields(cursor_fields, :after),
+      after_values
     )
   end
 
   defp maybe_where(query, %Config{
          after: nil,
          before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: sort_direction
-       })
-       when is_list(sort_direction) do
-    validate_sort_direction_list!(sort_direction, cursor_fields)
+         cursor_fields: cursor_fields
+       }) do
+    validate_cursor_fields!(cursor_fields)
 
     query
     |> filter_values(
-      cursor_fields,
-      before_values,
-      convert_sort_direction_list(sort_direction, :before)
+      convert_cursor_fields(cursor_fields, :before),
+      before_values
     )
     |> reverse_order_bys()
   end
@@ -195,56 +100,44 @@ defmodule Paginator.Ecto.Query do
   defp maybe_where(query, %Config{
          after_values: after_values,
          before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: sort_direction
-       })
-       when is_list(sort_direction) do
-    validate_sort_direction_list!(sort_direction, cursor_fields)
+         cursor_fields: cursor_fields
+       }) do
+    validate_cursor_fields!(cursor_fields)
 
     query
     |> filter_values(
-      cursor_fields,
-      after_values,
-      convert_sort_direction_list(sort_direction, :after)
+      convert_cursor_fields(cursor_fields, :after),
+      after_values
     )
     |> filter_values(
-      cursor_fields,
-      before_values,
-      convert_sort_direction_list(sort_direction, :before)
+      convert_cursor_fields(cursor_fields, :before),
+      before_values
     )
   end
 
-  # performs checks on the provided config before we run queries
-  defp validate_sort_direction_list!(direction, cursor_fields) do
+  defp validate_cursor_fields!(cursor_fields) do
     # the list must be a keyword list
-    unless Keyword.keyword?(direction),
-      do: raise("Expected sort direction to either be a keyword list, :asc or :desc")
+    unless Keyword.keyword?(cursor_fields),
+      do: raise("Expected cursor_fields to be a keyword list.")
 
-    # Check whether all cursor fields have a sorting direction associated
-    missing_fields = Enum.filter(cursor_fields, fn x -> !Keyword.has_key?(direction, x) end)
-
-    # if there are fields missing a direction, raise an error informing about the missing fields
-    if length(missing_fields) > 0 do
-      missing_fields = Enum.join(missing_fields, ", ")
-      raise("There is no sorting direction provided for the fields #{missing_fields}")
-    end
-
-    # lastly, check whether the values are either ascending or descending
-    Enum.each(direction, fn {key, value} ->
-      if value != :desc or value != :asc,
-        do: raise("Value for #{key} is invalid, please use either :desc or :asc")
+    Enum.each(cursor_fields, fn {key, value} ->
+      unless value == :desc or value == :asc do
+        raise(
+          "Value for field :#{key} in cursor_fields is invalid, please use either :desc or :asc"
+        )
+      end
     end)
   end
 
   # converts a column direction to a conditional, for example {column: :desc} to {column: :lt}
-  defp convert_sort_direction_list(direction_list, cursor_type) do
+  defp convert_cursor_fields(direction_list, cursor_type) do
     Enum.map(direction_list, fn {key, direction} ->
       operator =
         case {cursor_type, direction} do
-          {:after, :asc} -> :lt
-          {:after, :desc} -> :gt
-          {:before, :asc} -> :gt
-          {:before, :desc} -> :lt
+          {:before, :asc} -> :lt
+          {:before, :desc} -> :gt
+          {:after, :asc} -> :gt
+          {:after, :desc} -> :lt
         end
 
       {key, operator}
