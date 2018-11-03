@@ -29,6 +29,21 @@ defmodule Paginator do
       end
 
   Note that these values can be still be overriden when `paginate/3` is called.
+
+  ### Use without macros
+
+  If you wish to avoid use of macros or you wish to use a different name for
+  the pagination function you can define your own function like so:
+
+      defmodule MyApp.Repo do
+        use Ecto.Repo, otp_app: :my_app
+
+        def my_paginate_function(queryable, opts \\ [], repo_opts \\ []) do
+          defaults = [limit: 10] # Default options of your choice here
+          opts = Keyword.merge(defaults, opts)
+          Paginator.paginate(queryable, opts, __MODULE__, repo_opts)
+        end
+      end
   """
 
   import Ecto.Query
