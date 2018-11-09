@@ -18,11 +18,19 @@ defmodule Paginator.Ecto.Query do
     paginate(queryable, config)
   end
 
-  defp filter_values(query, cursor_fields, values) do
-    fields = Keyword.keys(cursor_fields)
+  defp get_operator(:asc, :before), do: :lt
+  defp get_operator(:desc, :before), do: :gt
+  defp get_operator(:asc, :after), do: :gt
+  defp get_operator(:desc, :after), do: :lt
 
+  defp get_operator_for_field(cursor_fields, key, direction) do
+    Keyword.get(cursor_fields, key)
+    |> get_operator(direction)
+  end
+
+  defp filter_values(query, fields, values, cursor_direction) do
     sorts =
-      fields
+      Keyword.keys(fields)
       |> Enum.zip(values)
       |> Enum.reject(fn val -> match?({_column, nil}, val) end)
 
@@ -33,7 +41,7 @@ defmodule Paginator.Ecto.Query do
         dynamic = true
 
         dynamic =
-          case Keyword.get(cursor_fields, column) do
+          case get_operator_for_field(fields, column, cursor_direction) do
             :lt ->
               dynamic([q], field(q, ^column) < ^value and ^dynamic)
 
@@ -76,10 +84,7 @@ defmodule Paginator.Ecto.Query do
     validate_cursor_fields!(cursor_fields)
 
     query
-    |> filter_values(
-      convert_cursor_fields(cursor_fields, :after),
-      after_values
-    )
+    |> filter_values(cursor_fields, after_values, :after)
   end
 
   defp maybe_where(query, %Config{
@@ -90,10 +95,7 @@ defmodule Paginator.Ecto.Query do
     validate_cursor_fields!(cursor_fields)
 
     query
-    |> filter_values(
-      convert_cursor_fields(cursor_fields, :before),
-      before_values
-    )
+    |> filter_values(cursor_fields, before_values, :before)
     |> reverse_order_bys()
   end
 
@@ -105,14 +107,8 @@ defmodule Paginator.Ecto.Query do
     validate_cursor_fields!(cursor_fields)
 
     query
-    |> filter_values(
-      convert_cursor_fields(cursor_fields, :after),
-      after_values
-    )
-    |> filter_values(
-      convert_cursor_fields(cursor_fields, :before),
-      before_values
-    )
+    |> filter_values(cursor_fields, after_values, :after)
+    |> filter_values(cursor_fields, before_values, :before)
   end
 
   defp validate_cursor_fields!(cursor_fields) do
@@ -126,21 +122,6 @@ defmodule Paginator.Ecto.Query do
           "Value for field :#{key} in cursor_fields is invalid, please use either :desc or :asc"
         )
       end
-    end)
-  end
-
-  # converts a column direction to a conditional, for example {column: :desc} to {column: :lt}
-  defp convert_cursor_fields(direction_list, cursor_type) do
-    Enum.map(direction_list, fn {key, direction} ->
-      operator =
-        case {cursor_type, direction} do
-          {:before, :asc} -> :lt
-          {:before, :desc} -> :gt
-          {:after, :asc} -> :gt
-          {:after, :desc} -> :lt
-        end
-
-      {key, operator}
     end)
   end
 

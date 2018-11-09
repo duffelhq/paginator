@@ -187,7 +187,7 @@ defmodule PaginatorTest do
     end
 
     test "sorts descending with before and after cursor", %{
-      payments: {_p1, p2, p3, _p4, _p5, _p6, _p7, p8, p9, p10, _p11, p12} = p
+      payments: {_p1, p2, p3, _p4, _p5, _p6, _p7, p8, p9, p10, _p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_charged_at(:desc)
@@ -517,7 +517,7 @@ defmodule PaginatorTest do
     end
 
     test "sorts with respect to nil values", %{
-      payments: {_p1, _p2, _p3, _p4, _p5, _p6, p7, _p8, _p9, _p10, p11, _p12} = payments
+      payments: {_p1, _p2, _p3, _p4, _p5, _p6, p7, _p8, _p9, _p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_charged_at(:desc)
