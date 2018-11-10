@@ -719,18 +719,6 @@ defmodule PaginatorTest do
            }
   end
 
-  test "expect to raise on incorrect sorting value" do
-    assert_raise RuntimeError,
-                 "Value for field :amount in cursor_fields is invalid, please use either :desc or :asc",
-                 fn ->
-                   payments_by_amount_and_charged_at(:desc, :asc)
-                   |> Repo.paginate(
-                     cursor_fields: [amount: :test, charged_at: :asc, id: :asc],
-                     limit: 8
-                   )
-                 end
-  end
-
   defp to_ids(entries), do: Enum.map(entries, & &1.id)
 
   defp create_customers_and_payments(_context) do

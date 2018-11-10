@@ -23,14 +23,19 @@ defmodule Paginator.Ecto.Query do
   defp get_operator(:asc, :after), do: :gt
   defp get_operator(:desc, :after), do: :lt
 
+  defp get_operator(direction, _),
+    do: raise("Invalid sorting value :#{direction}, please use either :asc or :desc")
+
   defp get_operator_for_field(cursor_fields, key, direction) do
-    Keyword.get(cursor_fields, key)
+    cursor_fields
+    |> Keyword.get(key)
     |> get_operator(direction)
   end
 
   defp filter_values(query, fields, values, cursor_direction) do
     sorts =
-      Keyword.keys(fields)
+      fields
+      |> Keyword.keys()
       |> Enum.zip(values)
       |> Enum.reject(fn val -> match?({_column, nil}, val) end)
 
@@ -68,11 +73,8 @@ defmodule Paginator.Ecto.Query do
 
   defp maybe_where(query, %Config{
          after: nil,
-         before: nil,
-         cursor_fields: cursor_fields
+         before: nil
        }) do
-    validate_cursor_fields!(cursor_fields)
-
     query
   end
 
@@ -81,8 +83,6 @@ defmodule Paginator.Ecto.Query do
          before: nil,
          cursor_fields: cursor_fields
        }) do
-    validate_cursor_fields!(cursor_fields)
-
     query
     |> filter_values(cursor_fields, after_values, :after)
   end
@@ -92,8 +92,6 @@ defmodule Paginator.Ecto.Query do
          before_values: before_values,
          cursor_fields: cursor_fields
        }) do
-    validate_cursor_fields!(cursor_fields)
-
     query
     |> filter_values(cursor_fields, before_values, :before)
     |> reverse_order_bys()
@@ -104,25 +102,9 @@ defmodule Paginator.Ecto.Query do
          before_values: before_values,
          cursor_fields: cursor_fields
        }) do
-    validate_cursor_fields!(cursor_fields)
-
     query
     |> filter_values(cursor_fields, after_values, :after)
     |> filter_values(cursor_fields, before_values, :before)
-  end
-
-  defp validate_cursor_fields!(cursor_fields) do
-    # the list must be a keyword list
-    unless Keyword.keyword?(cursor_fields),
-      do: raise("Expected cursor_fields to be a keyword list.")
-
-    Enum.each(cursor_fields, fn {key, value} ->
-      unless value == :desc or value == :asc do
-        raise(
-          "Value for field :#{key} in cursor_fields is invalid, please use either :desc or :asc"
-        )
-      end
-    end)
   end
 
   #  In order to return the correct pagination cursors, we need to fetch one more

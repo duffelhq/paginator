@@ -53,18 +53,22 @@ defmodule Paginator.Config do
         config
 
       {%__MODULE__{sort_direction: nil}, false} ->
-        %{config | cursor_fields: make_keyword_list(config.cursor_fields, :asc)}
+        %{
+          config
+          | cursor_fields: build_cursor_fields_from_sort_direction(config.cursor_fields, :asc)
+        }
 
       {%__MODULE__{sort_direction: direction}, false} ->
         %{
           config
-          | cursor_fields: make_keyword_list(config.cursor_fields, direction),
+          | cursor_fields:
+              build_cursor_fields_from_sort_direction(config.cursor_fields, direction),
             sort_direction: nil
         }
     end
   end
 
-  defp make_keyword_list(fields, sorting_direction) do
+  defp build_cursor_fields_from_sort_direction(fields, sorting_direction) do
     Enum.map(fields, fn x -> {x, sorting_direction} end)
   end
 end
