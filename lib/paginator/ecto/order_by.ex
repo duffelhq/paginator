@@ -25,7 +25,7 @@ defmodule Paginator.Ecto.OrderBy do
           {field, key}
 
         _ ->
-          raise "Unsupported `order_by` syntax, could not infer the cursor fields. Please supply `cursor_fields` manually."
+          raise "Unsupported `order_by` syntax, could not infer cursor fields for Paginator. Please supply `cursor_fields` manually."
       end
     end)
   end

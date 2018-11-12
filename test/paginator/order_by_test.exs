@@ -36,7 +36,7 @@ defmodule Paginator.OrderByTest do
 
     test "rejects order_by with a fragment" do
       assert_raise RuntimeError,
-                   "Unsupported `order_by` syntax, could not infer the cursor fields. Please supply `cursor_fields` manually.",
+                   "Unsupported `order_by` syntax, could not infer cursor fields for Paginator. Please supply `cursor_fields` manually.",
                    fn ->
                      from(p in "payments",
                        order_by: fragment("amount")
