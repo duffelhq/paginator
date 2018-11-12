@@ -44,7 +44,10 @@ not be an issue for an API or if you use infinite scrolling on your website.
 
 ```elixir
 defmodule MyApp.Repo do
-  use Ecto.Repo, otp_app: :my_app
+  use Ecto.Repo,
+    otp_app: :my_app,
+    adapter: Ecto.Adapters.Postgres
+
   use Paginator
 end
 
@@ -72,7 +75,10 @@ end
 
     ```elixir
     defmodule MyApp.Repo do
-      use Ecto.Repo, otp_app: :my_app
+      use Ecto.Repo,
+        otp_app: :my_app,
+        adapter: Ecto.Adapters.Postgres
+
       use Paginator
     end
     ```
