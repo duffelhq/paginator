@@ -517,7 +517,7 @@ defmodule PaginatorTest do
     end
 
     test "sorts with respect to nil values", %{
-      payments: {_p1, _p2, _p3, _p4, _p5, _p6, p7, _p8, _p9, _p10, p11, _p12} = payments
+      payments: {_p1, _p2, _p3, _p4, _p5, _p6, p7, _p8, _p9, _p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_charged_at(:desc)
