@@ -40,7 +40,7 @@ defmodule Paginator.Mixfile do
   defp deps do
     [
       {:calendar, "~> 0.17.4", only: :test},
-      {:ecto, "~> 2.0"},
+      {:ecto, "~> 3.0"},
       {:ex_doc, "~> 0.18", only: :dev, runtime: false},
       {:ex_machina, "~> 2.1", only: :test},
       {:inch_ex, "~> 1.0", only: [:dev, :test]},
