@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.0 - 2018-11-20
+
+### Changed
+
+* Add support for Ecto 3. Remove support for Ecto 2.
+([#40](https://github.com/duffelhq/paginator/pull/40), thanks! @van-mronov)
+
 ## v0.5.0 - 2018-10-31
 
 ### Added
