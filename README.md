@@ -65,7 +65,7 @@ Add `paginator` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:paginator, "~> 0.5"}]
+  [{:paginator, "~> 0.6"}]
 end
 ```
 
