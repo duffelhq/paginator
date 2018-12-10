@@ -17,7 +17,7 @@ defmodule Paginator.Ecto.Query do
     paginate(queryable, Config.new(opts))
   end
 
-  defp filter_values(query, cursor_fields, values, operator) do
+  defp filter_values(query, cursor_fields, values, ordering) do
     sorts =
       cursor_fields
       |> Enum.zip(values)
@@ -28,6 +28,8 @@ defmodule Paginator.Ecto.Query do
       |> Enum.with_index()
       |> Enum.reduce(true, fn {{column, value}, i}, dynamic_sorts ->
         dynamic = true
+
+        operator = operator(query, column, ordering)
 
         dynamic =
           case operator do
@@ -57,8 +59,7 @@ defmodule Paginator.Ecto.Query do
 
   defp maybe_where(query, %Config{
          after_values: nil,
-         before_values: nil,
-         sort_direction: :asc
+         before_values: nil
        }) do
     query
   end
@@ -66,73 +67,30 @@ defmodule Paginator.Ecto.Query do
   defp maybe_where(query, %Config{
          after_values: after_values,
          before: nil,
-         cursor_fields: cursor_fields,
-         sort_direction: :asc
+         cursor_fields: cursor_fields
        }) do
     query
-    |> filter_values(cursor_fields, after_values, :gt)
+    |> filter_values(cursor_fields, after_values, :forwards)
   end
 
   defp maybe_where(query, %Config{
          after_values: nil,
          before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: :asc
+         cursor_fields: cursor_fields
        }) do
     query
-    |> filter_values(cursor_fields, before_values, :lt)
+    |> filter_values(cursor_fields, before_values, :backwards)
     |> reverse_order_bys()
   end
 
   defp maybe_where(query, %Config{
          after_values: after_values,
          before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: :asc
+         cursor_fields: cursor_fields
        }) do
     query
-    |> filter_values(cursor_fields, after_values, :gt)
-    |> filter_values(cursor_fields, before_values, :lt)
-  end
-
-  defp maybe_where(query, %Config{
-         after: nil,
-         before: nil,
-         sort_direction: :desc
-       }) do
-    query
-  end
-
-  defp maybe_where(query, %Config{
-         after_values: after_values,
-         before: nil,
-         cursor_fields: cursor_fields,
-         sort_direction: :desc
-       }) do
-    query
-    |> filter_values(cursor_fields, after_values, :lt)
-  end
-
-  defp maybe_where(query, %Config{
-         after: nil,
-         before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: :desc
-       }) do
-    query
-    |> filter_values(cursor_fields, before_values, :gt)
-    |> reverse_order_bys()
-  end
-
-  defp maybe_where(query, %Config{
-         after_values: after_values,
-         before_values: before_values,
-         cursor_fields: cursor_fields,
-         sort_direction: :desc
-       }) do
-    query
-    |> filter_values(cursor_fields, after_values, :lt)
-    |> filter_values(cursor_fields, before_values, :gt)
+    |> filter_values(cursor_fields, after_values, :forwards)
+    |> filter_values(cursor_fields, before_values, :backwards)
   end
 
   #  In order to return the correct pagination cursors, we need to fetch one more
@@ -160,4 +118,21 @@ defmodule Paginator.Ecto.Query do
         end
     end)
   end
+
+  defp operator(query, field, ordering) do
+    Enum.reduce(query.order_bys, :gt, fn ob, default ->
+      %Ecto.Query.QueryExpr{expr: expr} = ob
+      Enum.reduce_while(expr, default, fn
+        {direction, {{_, _, [_, ^field]}, _, _}}, _ ->
+          {:halt, get_opertator(ordering, direction)}
+        _, default ->
+          {:cont, default}
+      end)
+    end)
+  end
+
+  defp get_opertator(:forwards, :asc), do: :gt
+  defp get_opertator(:forwards, :desc), do: :lt
+  defp get_opertator(:backwards, :asc), do: :lt
+  defp get_opertator(:backwards, :desc), do: :gt
 end

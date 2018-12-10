@@ -10,7 +10,7 @@ defmodule PaginatorTest do
   test "paginates forward", %{
     payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
   } do
-    opts = [cursor_fields: [:charged_at, :id], sort_direction: :asc, limit: 4]
+    opts = [cursor_fields: [:charged_at, :id], limit: 4]
 
     page = payments_by_charged_at() |> Repo.paginate(opts)
     assert to_ids(page.entries) == to_ids([p5, p4, p1, p6])
@@ -28,7 +28,7 @@ defmodule PaginatorTest do
   test "paginates backward", %{
     payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
   } do
-    opts = [cursor_fields: [:charged_at, :id], sort_direction: :asc, limit: 4]
+    opts = [cursor_fields: [:charged_at, :id], limit: 4]
 
     page =
       payments_by_charged_at()
@@ -63,7 +63,7 @@ defmodule PaginatorTest do
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_charged_at()
-        |> Repo.paginate(cursor_fields: [:charged_at, :id], sort_direction: :asc, limit: 50)
+        |> Repo.paginate(cursor_fields: [:charged_at, :id], limit: 50)
 
       assert to_ids(entries) == to_ids([p5, p4, p1, p6, p7, p3, p10, p2, p12, p8, p9, p11])
       assert metadata == %Metadata{after: nil, before: nil, limit: 50}
@@ -76,7 +76,6 @@ defmodule PaginatorTest do
         payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :asc,
           before: encode_cursor([p9.charged_at, p9.id]),
           limit: 8
         )
@@ -97,7 +96,6 @@ defmodule PaginatorTest do
         payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :asc,
           after: encode_cursor([p3.charged_at, p3.id]),
           limit: 8
         )
@@ -118,7 +116,6 @@ defmodule PaginatorTest do
         payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :asc,
           after: encode_cursor([p3.charged_at, p3.id]),
           before: encode_cursor([p8.charged_at, p8.id]),
           limit: 8
@@ -138,7 +135,7 @@ defmodule PaginatorTest do
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_charged_at(:desc)
-        |> Repo.paginate(cursor_fields: [:charged_at, :id], sort_direction: :desc, limit: 50)
+        |> Repo.paginate(cursor_fields: [:charged_at, :id], limit: 50)
 
       assert to_ids(entries) == to_ids([p11, p9, p8, p12, p2, p10, p3, p7, p6, p1, p4, p5])
       assert metadata == %Metadata{after: nil, before: nil, limit: 50}
@@ -151,7 +148,6 @@ defmodule PaginatorTest do
         payments_by_charged_at(:desc)
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :desc,
           before: encode_cursor([p9.charged_at, p9.id]),
           limit: 8
         )
@@ -172,7 +168,6 @@ defmodule PaginatorTest do
         payments_by_charged_at(:desc)
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :desc,
           after: encode_cursor([p9.charged_at, p9.id]),
           limit: 8
         )
@@ -193,7 +188,6 @@ defmodule PaginatorTest do
         payments_by_charged_at(:desc)
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :desc,
           after: encode_cursor([p9.charged_at, p9.id]),
           before: encode_cursor([p3.charged_at, p3.id]),
           limit: 8
@@ -215,7 +209,6 @@ defmodule PaginatorTest do
         payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :asc,
           before: encode_cursor([p5.charged_at, p5.id]),
           limit: 8
         )
@@ -231,7 +224,6 @@ defmodule PaginatorTest do
         payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :asc,
           after: encode_cursor([p11.charged_at, p11.id]),
           limit: 8
         )
@@ -247,7 +239,6 @@ defmodule PaginatorTest do
         payments_by_charged_at(:desc)
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :desc,
           before: encode_cursor([p11.charged_at, p11.id]),
           limit: 8
         )
@@ -263,7 +254,6 @@ defmodule PaginatorTest do
         payments_by_charged_at(:desc)
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :desc,
           after: encode_cursor([p5.charged_at, p5.id]),
           limit: 8
         )
@@ -306,7 +296,7 @@ defmodule PaginatorTest do
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_customer_name()
-        |> Repo.paginate(cursor_fields: [:id], sort_direction: :asc, limit: 50)
+        |> Repo.paginate(cursor_fields: [:id], limit: 50)
 
       assert to_ids(entries) == to_ids([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
       assert metadata == %Metadata{after: nil, before: nil, limit: 50}
@@ -320,7 +310,6 @@ defmodule PaginatorTest do
         payments_by_customer_name()
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :asc,
           before: encode_cursor(p11.id),
           limit: 8
         )
@@ -342,7 +331,6 @@ defmodule PaginatorTest do
         payments_by_customer_name()
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :asc,
           after: encode_cursor(p6.id),
           limit: 8
         )
@@ -359,7 +347,6 @@ defmodule PaginatorTest do
         payments_by_customer_name()
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :asc,
           after: encode_cursor(p6.id),
           before: encode_cursor(p10.id),
           limit: 8
@@ -380,7 +367,7 @@ defmodule PaginatorTest do
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_customer_name(:desc)
-        |> Repo.paginate(cursor_fields: [:id], sort_direction: :desc, limit: 50)
+        |> Repo.paginate(cursor_fields: [:id], limit: 50)
 
       assert to_ids(entries) == to_ids([p12, p11, p10, p9, p8, p7, p6, p5, p4, p3, p2, p1])
       assert metadata == %Metadata{after: nil, before: nil, limit: 50}
@@ -394,7 +381,6 @@ defmodule PaginatorTest do
         payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :desc,
           before: encode_cursor(p11.id),
           limit: 8
         )
@@ -411,7 +397,6 @@ defmodule PaginatorTest do
         payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :desc,
           after: encode_cursor(p11.id),
           limit: 8
         )
@@ -433,7 +418,6 @@ defmodule PaginatorTest do
         payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :desc,
           after: encode_cursor(p11.id),
           before: encode_cursor(p6.id),
           limit: 8
@@ -456,7 +440,6 @@ defmodule PaginatorTest do
         payments_by_customer_name()
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :asc,
           before: encode_cursor(p1.id),
           limit: 8
         )
@@ -473,7 +456,6 @@ defmodule PaginatorTest do
         payments_by_customer_name()
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :asc,
           after: encode_cursor(p12.id),
           limit: 8
         )
@@ -490,7 +472,6 @@ defmodule PaginatorTest do
         payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :desc,
           before: encode_cursor(p12.id),
           limit: 8
         )
@@ -507,7 +488,6 @@ defmodule PaginatorTest do
         payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :desc,
           after: encode_cursor(p1.id),
           limit: 8
         )
@@ -523,7 +503,6 @@ defmodule PaginatorTest do
         payments_by_charged_at(:desc)
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
-          sort_direction: :desc,
           after: encode_cursor([nil, nil]),
           limit: 8
         )
@@ -542,7 +521,7 @@ defmodule PaginatorTest do
   } do
     %Page{entries: entries, metadata: metadata} =
       payments_by_customer_name()
-      |> Repo.paginate(cursor_fields: [:id], sort_direction: :asc)
+      |> Repo.paginate(cursor_fields: [:id])
 
     assert to_ids(entries) == to_ids([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
     assert metadata == %Metadata{after: nil, before: nil, limit: 50}
@@ -553,7 +532,7 @@ defmodule PaginatorTest do
   } do
     %Page{entries: entries, metadata: metadata} =
       payments_by_customer_name()
-      |> Repo.paginate(cursor_fields: [:id], sort_direction: :asc, limit: 0)
+      |> Repo.paginate(cursor_fields: [:id], limit: 0)
 
     assert to_ids(entries) == to_ids([p1])
     assert metadata == %Metadata{after: encode_cursor(p1.id), before: nil, limit: 1}
@@ -567,7 +546,6 @@ defmodule PaginatorTest do
         payments_by_customer_name()
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :asc,
           limit: 5,
           total_count_limit: :infinity,
           include_total_count: true
@@ -589,7 +567,6 @@ defmodule PaginatorTest do
         payments_by_customer_name()
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :asc,
           limit: 5,
           include_total_count: true
         )
@@ -610,7 +587,6 @@ defmodule PaginatorTest do
         payments_by_customer_name()
         |> Repo.paginate(
           cursor_fields: [:id],
-          sort_direction: :asc,
           limit: 5,
           include_total_count: true,
           total_count_limit: 10
@@ -632,7 +608,6 @@ defmodule PaginatorTest do
         from(a in Address, select: a)
         |> Repo.paginate(
           cursor_fields: [:city],
-          sort_direction: :asc,
           limit: 2,
           include_total_count: true,
           total_count_primary_key_field: :city
