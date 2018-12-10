@@ -633,6 +633,63 @@ defmodule PaginatorTest do
     == encode_cursor([p7.amount])
   end
 
+  test "sorts on two different directions with before cursor", %{
+    payments: {_p1, _p2, _p3, p4, p5, p6, p7, _p8, _p9, _p10, _p11, _p12}
+  } do
+    %Page{entries: entries, metadata: metadata} =
+      payments_by_amount_and_charged_at(:asc, :desc)
+      |> Repo.paginate(
+        cursor_fields: [:amount, :charged_at, :id],
+        before: encode_cursor([p7.amount, p7.charged_at, p7.id]),
+        limit: 3
+      )
+
+     assert to_ids(entries) == to_ids([p6, p4, p5])
+     assert metadata == %Metadata{
+             after: encode_cursor([p5.amount, p5.charged_at, p5.id]),
+             before: nil,
+             limit: 3
+           }
+  end
+
+  test "sorts on two different directions with after cursor", %{
+    payments: {_p1, _p2, _p3, p4, p5, _p6, p7, p8, _p9, _p10, _p11, _p12}
+  } do
+    %Page{entries: entries, metadata: metadata} =
+      payments_by_amount_and_charged_at(:asc, :desc)
+      |> Repo.paginate(
+        cursor_fields: [:amount, :charged_at, :id],
+        after: encode_cursor([p4.amount, p4.charged_at, p4.id]),
+        limit: 3
+      )
+     assert to_ids(entries) == to_ids([p5, p7, p8])
+     assert metadata == %Metadata{
+             after: encode_cursor([p8.amount, p8.charged_at, p8.id]),
+             before: encode_cursor([p5.amount, p5.charged_at, p5.id]),
+             limit: 3
+           }
+  end
+
+  test "sorts on two different directions with before and after cursor", %{
+    payments: {_p1, _p2, _p3, p4, p5, p6, p7, p8, _p9, _p10, _p11, _p12}
+  } do
+    %Page{entries: entries, metadata: metadata} =
+      payments_by_amount_and_charged_at(:desc, :asc)
+      |> Repo.paginate(
+        cursor_fields: [:amount, :charged_at, :id],
+        after: encode_cursor([p8.amount, p8.charged_at, p8.id]),
+        before: encode_cursor([p6.amount, p6.charged_at, p6.id]),
+        limit: 8
+      )
+
+     assert to_ids(entries) == to_ids([p7, p5, p4])
+     assert metadata == %Metadata{
+             after: encode_cursor([p4.amount, p4.charged_at, p4.id]),
+             before: encode_cursor([p7.amount, p7.charged_at, p7.id]),
+             limit: 8
+           }
+  end
+
   defp to_ids(entries), do: Enum.map(entries, & &1.id)
 
   defp create_customers_and_payments(_context) do
@@ -644,9 +701,9 @@ defmodule PaginatorTest do
     a2 = insert(:address, city: "New York", customer: c2)
     a3 = insert(:address, city: "Tokyo", customer: c3)
 
-    p1 = insert(:payment, customer: c2, charged_at: days_ago(11))
-    p2 = insert(:payment, customer: c2, charged_at: days_ago(6))
-    p3 = insert(:payment, customer: c2, charged_at: days_ago(8))
+    p1 = insert(:payment, customer: c2, amount: 66, charged_at: days_ago(11))
+    p2 = insert(:payment, customer: c2, amount: 77, charged_at: days_ago(6))
+    p3 = insert(:payment, customer: c2, amount: 88, charged_at: days_ago(8))
     p4 = insert(:payment, customer: c2, amount: 2, charged_at: days_ago(12))
 
     p5 = insert(:payment, customer: c1, amount: 3, charged_at: days_ago(13))
@@ -654,10 +711,10 @@ defmodule PaginatorTest do
     p7 = insert(:payment, customer: c1, amount: 4, charged_at: days_ago(9))
     p8 = insert(:payment, customer: c1, amount: 5, charged_at: days_ago(4))
 
-    p9 = insert(:payment, customer: c3, charged_at: days_ago(3))
-    p10 = insert(:payment, customer: c3, charged_at: days_ago(7))
-    p11 = insert(:payment, customer: c3, charged_at: days_ago(2))
-    p12 = insert(:payment, customer: c3, charged_at: days_ago(5))
+    p9 = insert(:payment, customer: c3, amount: 99, charged_at: days_ago(3))
+    p10 = insert(:payment, customer: c3, amount: 100, charged_at: days_ago(7))
+    p11 = insert(:payment, customer: c3, amount: 101, charged_at: days_ago(2))
+    p12 = insert(:payment, customer: c3, amount: 102, charged_at: days_ago(5))
 
     {:ok, customers: {c1, c2, c3}, addresses: {a1, a2, a3}, payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}}
   end
@@ -667,6 +724,18 @@ defmodule PaginatorTest do
       p in Payment,
       where: p.status == ^status,
       order_by: [{^direction, p.charged_at}, {^direction, p.id}],
+      select: p
+    )
+  end
+
+  defp payments_by_amount_and_charged_at(amount_direction, charged_at_direction) do
+    from(
+      p in Payment,
+      order_by: [
+        {^amount_direction, p.amount},
+        {^charged_at_direction, p.charged_at},
+        {:asc, p.id}
+      ],
       select: p
     )
   end
