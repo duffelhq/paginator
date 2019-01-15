@@ -186,7 +186,7 @@ defmodule Paginator do
 
   defp fetch_cursor_value(schema, %Config{cursor_fields: cursor_fields}) do
     cursor_fields
-    |> Enum.map(fn field -> Map.get(schema, field) end)
+    |> Enum.map(fn {field, _} -> Map.get(schema, field) end)
     |> Cursor.encode()
   end
 
