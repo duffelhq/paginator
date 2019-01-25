@@ -27,9 +27,13 @@ defmodule Paginator.Ecto.Query do
     do: raise("Invalid sorting value :#{direction}, please use either :asc or :desc")
 
   defp get_operator_for_field(cursor_fields, key, direction) do
-    cursor_fields
-    |> Keyword.get(key)
-    |> get_operator(direction)
+    {_, order} =
+      cursor_fields
+      |> Enum.find(fn {field_key, _order} ->
+        field_key == key
+      end)
+
+    get_operator(order, direction)
   end
 
   defp filter_values(query, fields, values, cursor_direction) do
@@ -42,33 +46,36 @@ defmodule Paginator.Ecto.Query do
     dynamic_sorts =
       sorts
       |> Enum.with_index()
-      |> Enum.reduce(true, fn {{column, value}, i}, dynamic_sorts ->
+      |> Enum.reduce(true, fn {{bound_column, value}, i}, dynamic_sorts ->
+        {position, column} = column_position(query, bound_column)
+
         dynamic = true
 
         dynamic =
-          case get_operator_for_field(fields, column, cursor_direction) do
+          case get_operator_for_field(fields, bound_column, cursor_direction) do
             :lt ->
-              dynamic([q], field(q, ^column) < ^value and ^dynamic)
+              dynamic([{q, position}], field(q, ^column) < ^value and ^dynamic)
 
             :gt ->
-              dynamic([q], field(q, ^column) > ^value and ^dynamic)
+              dynamic([{q, position}], field(q, ^column) > ^value and ^dynamic)
           end
 
         dynamic =
           sorts
           |> Enum.take(i)
           |> Enum.reduce(dynamic, fn {prev_column, prev_value}, dynamic ->
-            dynamic([q], field(q, ^prev_column) == ^prev_value and ^dynamic)
+            {position, prev_column} = column_position(query, prev_column)
+            dynamic([{q, position}], field(q, ^prev_column) == ^prev_value and ^dynamic)
           end)
 
         if i == 0 do
-          dynamic([q], ^dynamic and ^dynamic_sorts)
+          dynamic([{q, position}], ^dynamic and ^dynamic_sorts)
         else
-          dynamic([q], ^dynamic or ^dynamic_sorts)
+          dynamic([{q, position}], ^dynamic or ^dynamic_sorts)
         end
       end)
 
-    where(query, [q], ^dynamic_sorts)
+    where(query, [{q, 0}], ^dynamic_sorts)
   end
 
   defp maybe_where(query, %Config{
@@ -106,6 +113,23 @@ defmodule Paginator.Ecto.Query do
     |> filter_values(cursor_fields, after_values, :after)
     |> filter_values(cursor_fields, before_values, :before)
   end
+
+  # Lookup position of binding in query aliases
+  defp column_position(query, {binding_name, column}) do
+    case Map.fetch(query.aliases, binding_name) do
+      {:ok, position} ->
+        {position, column}
+
+      _ ->
+        raise(
+          ArgumentError,
+          "Could not find binding `#{binding_name}` in query aliases: #{inspect(query.aliases)}"
+        )
+    end
+  end
+
+  # Without named binding we assume position of binding is 0
+  defp column_position(_query, column), do: {0, column}
 
   #  In order to return the correct pagination cursors, we need to fetch one more
   # # record than we actually want to return.

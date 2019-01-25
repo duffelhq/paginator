@@ -8,6 +8,7 @@ defmodule Paginator.Customer do
     field(:active, :boolean)
 
     has_many(:payments, Paginator.Payment)
+    has_one(:address, Paginator.Address)
 
     timestamps()
   end

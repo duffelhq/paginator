@@ -1,5 +1,6 @@
 defmodule PaginatorTest do
   use Paginator.DataCase
+  doctest Paginator
 
   alias Calendar.DateTime, as: DT
 
@@ -300,164 +301,204 @@ defmodule PaginatorTest do
   end
 
   describe "paginate a collection of payments, sorting by customer name" do
-    @tag :skip
-    test "sorts ascending without cursors", %{
-      payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
+    test "raises error when binding not found", %{
+      payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, p11, _p12}
     } do
-      %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(cursor_fields: [:id], sort_direction: :asc, limit: 50)
-
-      assert to_ids(entries) == to_ids([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
-      assert metadata == %Metadata{after: nil, before: nil, limit: 50}
+      assert_raise ArgumentError,
+                   "Could not find binding `bogus_binding` in query aliases: %{customer: 1, payments: 0}",
+                   fn ->
+                     %Page{} =
+                       payments_by_customer_name()
+                       |> Repo.paginate(
+                         cursor_fields: [
+                           {{:bogus_binding, :id}, :asc},
+                           {{:bogus_binding, :name}, :asc}
+                         ],
+                         limit: 50,
+                         before: encode_cursor([p11.id, p11.customer.name])
+                       )
+                   end
     end
 
-    @tag :skip
-    test "sorts ascending with before cursor", %{
+    test "sorts with mixed bindingless, bound columns", %{
       payments: {_p1, _p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_customer_name()
         |> Repo.paginate(
-          cursor_fields: [:id],
-          sort_direction: :asc,
-          before: encode_cursor(p11.id),
+          cursor_fields: [{:id, :asc}, {{:customer, :name}, :asc}],
+          before: encode_cursor([p11.id, p11.customer.name]),
           limit: 8
         )
 
       assert to_ids(entries) == to_ids([p3, p4, p5, p6, p7, p8, p9, p10])
 
       assert metadata == %Metadata{
-               after: encode_cursor(p10.id),
-               before: encode_cursor(p3.id),
+               after: encode_cursor([p10.id, p10.customer.name]),
+               before: encode_cursor([p3.id, p3.customer.name]),
                limit: 8
              }
     end
 
-    @tag :skip
+    test "sorts ascending without cursors", %{
+      payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
+    } do
+      %Page{entries: entries, metadata: metadata} =
+        payments_by_customer_name()
+        |> Repo.paginate(
+          cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
+          limit: 50
+        )
+
+      assert to_ids(entries) == to_ids([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
+      assert metadata == %Metadata{after: nil, before: nil, limit: 50}
+    end
+
+    test "sorts ascending with before cursor", %{
+      payments: {_p1, _p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, _p12}
+    } do
+      %Page{entries: entries, metadata: metadata} =
+        payments_by_customer_name()
+        |> Repo.paginate(
+          cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
+          before: encode_cursor([p11.id, p11.customer.name]),
+          limit: 8
+        )
+
+      assert to_ids(entries) == to_ids([p3, p4, p5, p6, p7, p8, p9, p10])
+
+      assert metadata == %Metadata{
+               after: encode_cursor([p10.id, p10.customer.name]),
+               before: encode_cursor([p3.id, p3.customer.name]),
+               limit: 8
+             }
+    end
+
     test "sorts ascending with after cursor", %{
       payments: {_p1, _p2, _p3, _p4, _p5, p6, p7, p8, p9, p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_customer_name()
         |> Repo.paginate(
-          cursor_fields: [:id],
-          sort_direction: :asc,
-          after: encode_cursor(p6.id),
+          cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
+          after: encode_cursor([p6.id, p6.customer.name]),
           limit: 8
         )
 
       assert to_ids(entries) == to_ids([p7, p8, p9, p10, p11, p12])
-      assert metadata == %Metadata{after: nil, before: encode_cursor(p7.id), limit: 8}
+
+      assert metadata == %Metadata{
+               after: nil,
+               before: encode_cursor([p7.id, p7.customer.name]),
+               limit: 8
+             }
     end
 
-    @tag :skip
     test "sorts ascending with before and after cursor", %{
       payments: {_p1, _p2, _p3, _p4, _p5, p6, p7, p8, p9, p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_customer_name()
         |> Repo.paginate(
-          cursor_fields: [:id],
-          sort_direction: :asc,
-          after: encode_cursor(p6.id),
-          before: encode_cursor(p10.id),
+          cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
+          after: encode_cursor([p6.id, p6.customer.name]),
+          before: encode_cursor([p10.id, p10.customer.name]),
           limit: 8
         )
 
       assert to_ids(entries) == to_ids([p7, p8, p9])
 
       assert metadata == %Metadata{
-               after: encode_cursor(p9.id),
-               before: encode_cursor(p7.id),
+               after: encode_cursor([p9.id, p9.customer.name]),
+               before: encode_cursor([p7.id, p7.customer.name]),
                limit: 8
              }
     end
 
-    @tag :skip
     test "sorts descending without cursors", %{
       payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc)
-        |> Repo.paginate(cursor_fields: [:id], sort_direction: :desc, limit: 50)
+        payments_by_customer_name(:desc, :desc)
+        |> Repo.paginate(
+          cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
+          limit: 50
+        )
 
       assert to_ids(entries) == to_ids([p12, p11, p10, p9, p8, p7, p6, p5, p4, p3, p2, p1])
       assert metadata == %Metadata{after: nil, before: nil, limit: 50}
     end
 
-    @tag :skip
     test "sorts descending with before cursor", %{
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_customer_name(:desc)
         |> Repo.paginate(
-          cursor_fields: [:id],
-          sort_direction: :desc,
-          before: encode_cursor(p11.id),
+          cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
+          before: encode_cursor([p11.id, p11.customer.name]),
           limit: 8
         )
 
       assert to_ids(entries) == to_ids([p12])
-      assert metadata == %Metadata{after: encode_cursor(p12.id), before: nil, limit: 8}
+
+      assert metadata == %Metadata{
+               after: encode_cursor([p12.id, p12.customer.name]),
+               before: nil,
+               limit: 8
+             }
     end
 
-    @tag :skip
     test "sorts descending with after cursor", %{
       payments: {_p1, _p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc)
+        payments_by_customer_name(:desc, :desc)
         |> Repo.paginate(
-          cursor_fields: [:id],
+          cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
           sort_direction: :desc,
-          after: encode_cursor(p11.id),
+          after: encode_cursor([p11.id, p11.customer.name]),
           limit: 8
         )
 
       assert to_ids(entries) == to_ids([p10, p9, p8, p7, p6, p5, p4, p3])
 
       assert metadata == %Metadata{
-               after: encode_cursor(p3.id),
-               before: encode_cursor(p10.id),
+               after: encode_cursor([p3.id, p3.customer.name]),
+               before: encode_cursor([p10.id, p10.customer.name]),
                limit: 8
              }
     end
 
-    @tag :skip
     test "sorts descending with before and after cursor", %{
       payments: {_p1, _p2, _p3, _p4, _p5, p6, p7, p8, p9, p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc)
+        payments_by_customer_name(:desc, :desc)
         |> Repo.paginate(
-          cursor_fields: [:id],
-          sort_direction: :desc,
-          after: encode_cursor(p11.id),
-          before: encode_cursor(p6.id),
+          cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
+          after: encode_cursor([p11.id, p11.customer.name]),
+          before: encode_cursor([p6.id, p6.customer.name]),
           limit: 8
         )
 
       assert to_ids(entries) == to_ids([p10, p9, p8, p7])
 
       assert metadata == %Metadata{
-               after: encode_cursor(p7.id),
-               before: encode_cursor(p10.id),
+               after: encode_cursor([p7.id, p7.customer.name]),
+               before: encode_cursor([p10.id, p10.customer.name]),
                limit: 8
              }
     end
 
-    @tag :skip
     test "sorts ascending with before cursor at beginning of collection", %{
       payments: {p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_customer_name()
         |> Repo.paginate(
-          cursor_fields: [:id],
-          sort_direction: :asc,
-          before: encode_cursor(p1.id),
+          cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
+          before: encode_cursor([p1.id, p1.customer.name]),
           limit: 8
         )
 
@@ -465,16 +506,14 @@ defmodule PaginatorTest do
       assert metadata == %Metadata{after: nil, before: nil, limit: 8}
     end
 
-    @tag :skip
     test "sorts ascending with after cursor at end of collection", %{
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
         payments_by_customer_name()
         |> Repo.paginate(
-          cursor_fields: [:id],
-          sort_direction: :asc,
-          after: encode_cursor(p12.id),
+          cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
+          after: encode_cursor([p12.id, p12.customer.name]),
           limit: 8
         )
 
@@ -482,16 +521,14 @@ defmodule PaginatorTest do
       assert metadata == %Metadata{after: nil, before: nil, limit: 8}
     end
 
-    @tag :skip
     test "sorts descending with before cursor at beginning of collection", %{
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc)
+        payments_by_customer_name(:desc, :desc)
         |> Repo.paginate(
-          cursor_fields: [:id],
-          sort_direction: :desc,
-          before: encode_cursor(p12.id),
+          cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
+          before: encode_cursor([p12.id, p12.customer.name]),
           limit: 8
         )
 
@@ -499,21 +536,48 @@ defmodule PaginatorTest do
       assert metadata == %Metadata{after: nil, before: nil, limit: 8}
     end
 
-    @tag :skip
     test "sorts descending with after cursor at end of collection", %{
       payments: {p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc)
+        payments_by_customer_name(:desc, :desc)
         |> Repo.paginate(
-          cursor_fields: [:id],
-          sort_direction: :desc,
-          after: encode_cursor(p1.id),
+          cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
+          after: encode_cursor([p1.id, p1.customer.name]),
           limit: 8
         )
 
       assert to_ids(entries) == to_ids([])
       assert metadata == %Metadata{after: nil, before: nil, limit: 8}
+    end
+
+    test "sorts on 2nd level join column with a custom cursor value function", %{
+      payments: {_p1, _p2, _p3, _p4, p5, p6, p7, _p8, _p9, _p10, _p11, _p12}
+    } do
+      %Page{entries: entries, metadata: metadata} =
+        payments_by_address_city()
+        |> Repo.paginate(
+          cursor_fields: [{{:address, :city}, :asc}, id: :asc],
+          before: nil,
+          limit: 3,
+          fetch_cursor_value_fun: fn
+            schema, {:address, :city} ->
+              schema.customer.address.city
+
+            schema, field ->
+              Paginator.default_fetch_cursor_value(schema, field)
+          end
+        )
+
+      assert to_ids(entries) == to_ids([p5, p6, p7])
+
+      p7 = Repo.preload(p7, customer: :address)
+
+      assert metadata == %Metadata{
+               after: encode_cursor([p7.customer.address.city, p7.id]),
+               before: nil,
+               limit: 3
+             }
     end
 
     test "sorts with respect to nil values", %{
@@ -658,6 +722,17 @@ defmodule PaginatorTest do
     assert Paginator.cursor_for_record(p7, amount: :asc) == encode_cursor([p7.amount])
   end
 
+  test "per-record cursor generation with custom cursor value function", %{
+    payments: {p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
+  } do
+    assert Paginator.cursor_for_record(p1, [charged_at: :asc, id: :asc], fn schema, field ->
+             case field do
+               :id -> Map.get(schema, :id)
+               _ -> "10"
+             end
+           end) == encode_cursor(["10", p1.id])
+  end
+
   test "sorts on two different directions with before cursor", %{
     payments: {_p1, _p2, _p3, p4, p5, p6, p7, _p8, _p9, _p10, _p11, _p12}
   } do
@@ -780,12 +855,35 @@ defmodule PaginatorTest do
     )
   end
 
-  defp payments_by_customer_name(direction \\ :asc) do
+  defp payments_by_customer_name(payment_id_direction \\ :asc, customer_name_direction \\ :asc) do
     from(
       p in Payment,
+      as: :payments,
       join: c in assoc(p, :customer),
-      order_by: [{^direction, c.name}, {^direction, p.id}],
-      select: p
+      as: :customer,
+      preload: [customer: c],
+      select: p,
+      order_by: [
+        {^customer_name_direction, c.name},
+        {^payment_id_direction, p.id}
+      ]
+    )
+  end
+
+  defp payments_by_address_city(payment_id_direction \\ :asc, address_city_direction \\ :asc) do
+    from(
+      p in Payment,
+      as: :payments,
+      join: c in assoc(p, :customer),
+      as: :customer,
+      join: a in assoc(c, :address),
+      as: :address,
+      preload: [customer: {c, address: a}],
+      select: p,
+      order_by: [
+        {^address_city_direction, a.city},
+        {^payment_id_direction, p.id}
+      ]
     )
   end
 
