@@ -69,8 +69,11 @@ defmodule Paginator do
 
     * `:after` - Fetch the records after this cursor.
     * `:before` - Fetch the records before this cursor.
-    * `:cursor_fields` - The fields used to determine the cursor. In most cases,
-    this should be the same fields as the ones used for sorting in the query.
+    * `:cursor_fields` - The fields with sorting direction used to determine the
+    cursor. In most cases, this should be the same fields as the ones used for sorting in the query.
+    When you use named bindings in your query they can also be provided.
+    * `:fetch_cursor_value_fun` function of arity 2 to lookup cursor values on returned records.
+    Defaults to `Paginator.default_fetch_cursor_value/2`
     * `:include_total_count` - Set this to true to return the total number of
     records matching the query. Note that this number will be capped by
     `:total_count_limit`. Defaults to `false`.
@@ -81,6 +84,7 @@ defmodule Paginator do
     is set dynamically (e.g from a URL param set by a user) but you still want to
     enfore a maximum. Defaults to `500`.
     * `:sort_direction` - The direction used for sorting. Defaults to `:asc`.
+    It is preferred to set the sorting direction per field in `:cursor_fields`.
     * `:total_count_limit` - Running count queries on tables with a large number
     of records is expensive so it is capped by default. Can be set to `:infinity`
     in order to count all the records. Defaults to `10,000`.
@@ -90,11 +94,78 @@ defmodule Paginator do
   This will be passed directly to `Ecto.Repo.all/2`, as such any option supported
   by this function can be used here.
 
-  ## Example
+  ## Simple example
 
       query = from(p in Post, order_by: [asc: p.inserted_at, asc: p.id], select: p)
 
       Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 50)
+
+  ## Example with using custom sort directions per field
+
+      query = from(p in Post, order_by: [asc: p.inserted_at, desc: p.id], select: p)
+
+      Repo.paginate(query, cursor_fields: [inserted_at: :asc, id: :desc], limit: 50)
+
+  ## Example with sorting on columns in joined tables
+
+      from(
+        p in Post,
+        as: :posts,
+        join: a in assoc(p, :author),
+        as: :author,
+        preload: [author: a],
+        select: p,
+        order_by: [
+          {:asc, a.name},
+          {:asc, p.id}
+        ]
+      )
+
+      Repo.paginate(query, cursor_fields: [{{:author, :name}, :asc}, id: :asc], limit: 50)
+
+  When sorting on columns in joined tables it is necessary to use named bindings. In
+  this case we name it `author`. In the `cursor_fields` we refer to this named binding
+  and its column name.
+
+  To build the cursor Paginator uses the returned Ecto.Schema. When using a joined
+  column the returned Ecto.Schema won't have the value of the joined column
+  unless we preload it. E.g. in this case the cursor will be build up from
+  `post.id` and `post.author.name`. This presupposes that the named of the
+  binding is the same as the name of the relationship on the original struct.
+
+  One level deep joins are supported out of the box but if we join on a second
+  level, e.g. `post.author.company.name` a custom function can be supplied to
+  handle the cursor value retrieval. This also applies when the named binding
+  does not map to the name of the relationship.
+
+  ## Example
+      from(
+        p in Post,
+        as: :posts,
+        join: a in assoc(p, :author),
+        as: :author,
+        join: c in assoc(a, :company),
+        as: :company,
+        preload: [author: a],
+        select: p,
+        order_by: [
+          {:asc, a.name},
+          {:asc, p.id}
+        ]
+      )
+
+      Repo.paginate(query,
+        cursor_fields: [{{:company, :name}, :asc}, id: :asc],
+        fetch_cursor_value_fun: fn
+          post, {{:company, name}, _} ->
+            post.author.company.name
+
+          post, field ->
+            Paginator.default_fetch_cursor_value(post, field)
+        end,
+        limit: 50
+      )
+
   """
   @callback paginate(queryable :: Ecto.Query.t(), opts :: Keyword.t(), repo_opts :: Keyword.t()) ::
               Paginator.Page.t()
