@@ -25,6 +25,7 @@ defmodule Paginator.Config do
   @minimum_limit 1
   @maximum_limit 500
   @default_total_count_limit 10_000
+  @order_directions [:asc, :desc]
 
   def new(opts \\ []) do
     %__MODULE__{
@@ -51,17 +52,14 @@ defmodule Paginator.Config do
   end
 
   defp convert_deprecated_config(config) do
-    case {config, deprecated_config?(config.cursor_fields)} do
-      {%__MODULE__{sort_direction: _}, false} ->
-        config
-
-      {%__MODULE__{sort_direction: nil}, true} ->
+    case config do
+      %__MODULE__{sort_direction: nil} ->
         %{
           config
           | cursor_fields: build_cursor_fields_from_sort_direction(config.cursor_fields, :asc)
         }
 
-      {%__MODULE__{sort_direction: direction}, true} ->
+      %__MODULE__{sort_direction: direction} ->
         %{
           config
           | cursor_fields:
@@ -71,16 +69,12 @@ defmodule Paginator.Config do
     end
   end
 
-  defp deprecated_config?(cursor_fields) do
-    cursor_fields
-    |> Enum.all?(fn
-      {{_binding, _column}, _direction} -> false
-      {_column, _direction} -> false
-      _ -> true
-    end)
-  end
-
   defp build_cursor_fields_from_sort_direction(fields, sorting_direction) do
-    Enum.map(fields, fn x -> {x, sorting_direction} end)
+    Enum.map(fields, fn
+      {{_binding, _column}, _direction} = field -> field
+      {_column, direction} = field when direction in @order_directions  -> field
+      {_binding, _column} = field -> {field, sorting_direction}
+      field -> {field, sorting_direction}
+    end)
   end
 end

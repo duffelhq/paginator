@@ -340,6 +340,26 @@ defmodule PaginatorTest do
              }
     end
 
+    test "sorts with mixed columns without direction and bound columns", %{
+      payments: {_p1, _p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, _p12}
+    } do
+      %Page{entries: entries, metadata: metadata} =
+        payments_by_customer_name()
+        |> Repo.paginate(
+          cursor_fields: [:id, {{:customer, :name}, :asc}],
+          before: encode_cursor([p11.id, p11.customer.name]),
+          limit: 8
+        )
+
+      assert to_ids(entries) == to_ids([p3, p4, p5, p6, p7, p8, p9, p10])
+
+      assert metadata == %Metadata{
+               after: encode_cursor([p10.id, p10.customer.name]),
+               before: encode_cursor([p3.id, p3.customer.name]),
+               limit: 8
+             }
+    end
+
     test "sorts ascending without cursors", %{
       payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
     } do
