@@ -95,7 +95,7 @@ end
     cursor_after = metadata.after
 
     # return the next 50 posts
-    %{entries: entries, metadata: metadata} = Repo.paginate(query, after: cursor_after, cursor_fields: [:inserted_at, :id], limit: 50)
+    %{entries: entries, metadata: metadata} = Repo.paginate(query, after: cursor_after, cursor_fields: [{inserted_at: :asc}, {:id, :asc}], limit: 50)
 
     # assign the `before` cursor to a variable
     cursor_before = metadata.before
@@ -130,8 +130,6 @@ create index("posts", [:inserted_at, :id])
 definition, just add any unique column and extend your index accordingly.
 * You need to add order_by clauses yourself before passing your query to `paginate/2`. In the future we might do that
 for you automatically based on the fields specified in `:cursor_fields`.
-* It is not possible to use the column from a joined resource as a cursor. This limitation will be lifted once support for
-[named joins](https://github.com/elixir-ecto/ecto/issues/2389) lands in Ecto 3.0.
 * There is an outstanding issue where Postgrex fails to properly builds the query if it includes custom PostgreSQL types.
 * This library has only be tested with PostgreSQL.
 

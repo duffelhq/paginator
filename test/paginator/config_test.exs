@@ -14,6 +14,44 @@ defmodule Paginator.ConfigTest do
     end
   end
 
+  describe "Config.new/2 applies sort_fields" do
+    test "applies column fields with default direction" do
+      config = Config.new(cursor_fields: [:id])
+
+      assert config.cursor_fields == [id: :asc]
+    end
+
+    test "applies column fields with alternate direction" do
+      config = Config.new(cursor_fields: [:id], sort_direction: :desc)
+
+      assert config.cursor_fields == [id: :desc]
+    end
+
+    test "applies column with direction tuples" do
+      config = Config.new(cursor_fields: [id: :desc], sort_direction: :asc)
+
+      assert config.cursor_fields == [id: :desc]
+    end
+
+    test "applies column with direction tuples mixed with column fields" do
+      config = Config.new(cursor_fields: [{:id, :desc}, :name], sort_direction: :asc)
+
+      assert config.cursor_fields == [id: :desc, name: :asc]
+    end
+
+    test "applies {binding, column} tuples with direction" do
+      config = Config.new(cursor_fields: [{{:payments, :id}, :desc}], sort_direction: :asc)
+
+      assert config.cursor_fields == [{{:payments, :id}, :desc}]
+    end
+
+    test "applies {binding, column} tuples without direction" do
+      config = Config.new(cursor_fields: [{:payments, :id}], sort_direction: :asc)
+
+      assert config.cursor_fields == [{{:payments, :id}, :asc}]
+    end
+  end
+
   describe "Config.new/2 applies min/max limit" do
     test "applies default limit" do
       config = Config.new()
