@@ -236,14 +236,17 @@ defmodule Paginator do
 
       iex> Paginator.default_fetch_cursor_value(%Paginator.Customer{id: 1, address: %Paginator.Address{city: "London"}}, {:address, :city})
       "London"
+
+      iex> Paginator.default_fetch_cursor_value(%Paginator.Payment{id: 1, customer: %Paginator.Customer{id: 2}}, {:customer, :id})
+      2
   """
 
   @spec default_fetch_cursor_value(map(), atom() | {atom(), atom()}) :: any()
   def default_fetch_cursor_value(schema, {binding, field})
       when is_atom(binding) and is_atom(field) do
-    case Map.get(schema, field) do
-      nil -> Map.get(schema, binding) |> Map.get(field)
-      value -> value
+    case Map.get(schema, binding) do
+      nil -> Map.get(schema, field)
+      assoc -> Map.get(assoc, field)
     end
   end
 

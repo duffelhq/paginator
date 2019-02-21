@@ -740,6 +740,9 @@ defmodule PaginatorTest do
              encode_cursor([p1.charged_at, p1.id])
 
     assert Paginator.cursor_for_record(p7, amount: :asc) == encode_cursor([p7.amount])
+
+    assert Paginator.cursor_for_record(p7, [{{:customer, :id}, :asc}]) ==
+             encode_cursor([p7.customer.id])
   end
 
   test "per-record cursor generation with custom cursor value function", %{
