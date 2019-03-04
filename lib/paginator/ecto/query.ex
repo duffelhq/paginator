@@ -52,13 +52,9 @@ defmodule Paginator.Ecto.Query do
         dynamic = true
 
         dynamic =
-          case get_operator_for_field(fields, bound_column, cursor_direction) do
-            :lt ->
-              build_cursor_where(:lt, position, column, value, dynamic)
-
-            :gt ->
-              build_cursor_where(:gt, position, column, value, dynamic)
-          end
+          fields
+          |> get_operator_for_field(bound_column, cursor_direction)
+          |> build_cursor_where(position, column, value, dynamic)
 
         dynamic =
           sorts
@@ -68,14 +64,18 @@ defmodule Paginator.Ecto.Query do
             build_cursor_where(:prev, position, prev_column, prev_value, dynamic)
           end)
 
-        if i == 0 do
-          dynamic([{q, position}], ^dynamic and ^dynamic_sorts)
-        else
-          dynamic([{q, position}], ^dynamic or ^dynamic_sorts)
-        end
+        build_cursor_where(:with_sorts, i, dynamic, dynamic_sorts)
       end)
 
     where(query, [{q, 0}], ^dynamic_sorts)
+  end
+
+  defp build_cursor_where(:with_sorts, 0, dynamic, dynamic_sorts) do
+    dynamic([{q, position}], ^dynamic and ^dynamic_sorts)
+  end
+
+  defp build_cursor_where(:with_sorts, _, dynamic, dynamic_sorts) do
+    dynamic([{q, position}], ^dynamic or ^dynamic_sorts)
   end
 
   defp build_cursor_where(:lt, position, column, value, dynamic) when is_atom(column) do
