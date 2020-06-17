@@ -174,8 +174,7 @@ defmodule Paginator do
   def paginate(queryable, opts, repo, repo_opts) do
     config = Config.new(opts)
 
-    unless config.cursor_fields,
-      do: raise("expected `:cursor_fields` to be set in call to paginate/3")
+    Config.validate!(config)
 
     sorted_entries = entries(queryable, config, repo, repo_opts)
     paginated_entries = paginate_entries(sorted_entries, config)
