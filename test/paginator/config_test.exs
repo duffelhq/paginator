@@ -83,7 +83,7 @@ defmodule Paginator.ConfigTest do
       config = Config.new(limit: 10, cursor_fields: [:id], before: simple_before())
 
       assert config.after_values == nil
-      assert config.before_values == ["pay_789"]
+      assert config.before_values == %{id: "pay_789"}
       assert config.limit == 10
       assert config.cursor_fields == [id: :asc]
     end
@@ -91,7 +91,7 @@ defmodule Paginator.ConfigTest do
     test "simple after" do
       config = Config.new(limit: 10, cursor_fields: [:id], after: simple_after())
 
-      assert config.after_values == ["pay_123"]
+      assert config.after_values == %{id: "pay_123"}
       assert config.before_values == nil
       assert config.limit == 10
       assert config.cursor_fields == [id: :asc]
@@ -101,7 +101,7 @@ defmodule Paginator.ConfigTest do
       config = Config.new(limit: 10, cursor_fields: [:created_at, :id], before: complex_before())
 
       assert config.after_values == nil
-      assert config.before_values == ["2036-02-09T20:00:00.000Z", "pay_789"]
+      assert config.before_values == %{date: "2036-02-09T20:00:00.000Z", id: "pay_789"}
       assert config.limit == 10
       assert config.cursor_fields == [created_at: :asc, id: :asc]
     end
@@ -109,15 +109,15 @@ defmodule Paginator.ConfigTest do
     test "complex after" do
       config = Config.new(limit: 10, cursor_fields: [:created_at, :id], after: complex_after())
 
-      assert config.after_values == ["2036-02-09T20:00:00.000Z", "pay_123"]
+      assert config.after_values == %{date: "2036-02-09T20:00:00.000Z", id: "pay_123"}
       assert config.before_values == nil
       assert config.limit == 10
       assert config.cursor_fields == [created_at: :asc, id: :asc]
     end
   end
 
-  def simple_after, do: Cursor.encode("pay_123")
-  def simple_before, do: Cursor.encode("pay_789")
-  def complex_after, do: Cursor.encode(["2036-02-09T20:00:00.000Z", "pay_123"])
-  def complex_before, do: Cursor.encode(["2036-02-09T20:00:00.000Z", "pay_789"])
+  def simple_after, do: Cursor.encode(%{id: "pay_123"})
+  def simple_before, do: Cursor.encode(%{id: "pay_789"})
+  def complex_after, do: Cursor.encode(%{date: "2036-02-09T20:00:00.000Z", id: "pay_123"})
+  def complex_before, do: Cursor.encode(%{date: "2036-02-09T20:00:00.000Z", id: "pay_789"})
 end

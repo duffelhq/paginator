@@ -36,12 +36,19 @@ defmodule Paginator.Ecto.Query do
     get_operator(order, direction)
   end
 
-  defp filter_values(query, fields, values, cursor_direction) do
-    sorts =
+  # This clause is responsible for transforming legacy list cursors into map cursors
+  defp filter_values(query, fields, values, cursor_direction) when is_list(values) do
+    new_values =
       fields
       |> Keyword.keys()
       |> Enum.zip(values)
-      |> Enum.reject(fn val -> match?({_column, nil}, val) end)
+      |> Map.new()
+
+    filter_values(query, fields, new_values, cursor_direction)
+  end
+
+  defp filter_values(query, fields, values, cursor_direction) when is_map(values) do
+    sorts = Enum.reject(values, fn val -> match?({_column, nil}, val) end)
 
     dynamic_sorts =
       sorts
