@@ -6,20 +6,20 @@ elixir:
   - 1.9
   - 1.10
 otp_release:
-  - 19.0
+  - 19.3
   - 20.0
   - 21.0
   - 22.0
 matrix:
   exclude:
   - elixir: 1.8
-    otp_version: 19.0
+    otp_release: 19.3
   - elixir: 1.9
-    otp_version: 19.0
+    otp_release: 19.3
   - elixir: 1.10
-    otp_version: 19.0
+    otp_release: 19.3
   - elixir: 1.10
-    otp_version: 20.0
+    otp_release: 20.0
 services:
   - postgresql
 before_script:
