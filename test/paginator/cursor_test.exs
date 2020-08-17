@@ -4,17 +4,10 @@ defmodule Paginator.CursorTest do
   alias Paginator.Cursor
 
   describe "encoding and decoding terms" do
-    test "it wraps terms into lists" do
-      cursor = Cursor.encode(1)
+    test "it encodes and decodes map cursors" do
+      cursor = Cursor.encode(%{a: 1, b: 2})
 
-      assert Cursor.decode(cursor) == [1]
-    end
-
-    test "it doesn't wrap a list in a list" do
-      cursor = Cursor.encode([1])
-
-      assert Cursor.decode(cursor) == [1]
-      refute Cursor.decode(cursor) == [[1]]
+      assert Cursor.decode(cursor) == %{a: 1, b: 2}
     end
   end
 

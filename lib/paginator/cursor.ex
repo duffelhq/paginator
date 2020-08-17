@@ -9,13 +9,9 @@ defmodule Paginator.Cursor do
     |> :erlang.binary_to_term([:safe])
   end
 
-  def encode(values) when is_list(values) do
+  def encode(values) when is_map(values) do
     values
     |> :erlang.term_to_binary()
     |> Base.url_encode64()
-  end
-
-  def encode(value) do
-    encode([value])
   end
 end
