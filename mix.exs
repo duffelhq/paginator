@@ -1,13 +1,13 @@
 defmodule Paginator.Mixfile do
   use Mix.Project
 
-  @version "0.6.0"
+  @version "1.0.0"
 
   def project do
     [
       app: :paginator,
       version: @version,
-      elixir: "~> 1.4",
+      elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
