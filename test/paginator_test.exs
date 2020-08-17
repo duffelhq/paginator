@@ -817,6 +817,34 @@ defmodule PaginatorTest do
     end
   end
 
+  test "when before parameter is erlang term, we do not execute the code", %{} do
+    # before and after, are user inputs, we need to make sure that they are
+    # handled safely.
+
+    test_pid = self()
+
+    exploit = fn _, _ ->
+      send(test_pid, :rce)
+      {:cont, []}
+    end
+
+    payload =
+      exploit
+      |> :erlang.term_to_binary()
+      |> Base.url_encode64()
+
+    assert_raise(ArgumentError, ~r/^cannot deserialize.+/, fn ->
+      payments_by_amount_and_charged_at(:asc, :desc)
+      |> Repo.paginate(
+        cursor_fields: [amount: :asc, charged_at: :desc, id: :asc],
+        before: payload,
+        limit: 3
+      )
+    end)
+
+    refute_receive :rce, 1000, "Remote Code Execution Detected"
+  end
+
   test "per-record cursor generation", %{
     payments: {p1, _p2, _p3, _p4, _p5, _p6, p7, _p8, _p9, _p10, _p11, _p12}
   } do

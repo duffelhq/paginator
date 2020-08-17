@@ -109,6 +109,10 @@ end
 
     IO.puts "total count: #{metadata.total_count}"
     ```
+## Security Considerations
+
+`Repo.paginate/4 will throw an ArgumentError should it detect an executable term in the cursor parameters passed to it (`before`, `after`).
+This is done to protect you from potential side-effects of malicious user input, see [paginator_test.exs](https://github.com/duffelhq/paginator/blob/master/test/paginator_test.exs#L820).
 
 ## Indexes
 

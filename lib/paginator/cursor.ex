@@ -6,7 +6,7 @@ defmodule Paginator.Cursor do
   def decode(encoded_cursor) do
     encoded_cursor
     |> Base.url_decode64!()
-    |> :erlang.binary_to_term([:safe])
+    |> Plug.Crypto.non_executable_binary_to_term([:safe])
   end
 
   def encode(values) when is_map(values) do
