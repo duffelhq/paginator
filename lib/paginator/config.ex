@@ -98,7 +98,7 @@ defmodule Paginator.Config do
     end
   end
 
-  defp build_cursor_fields_from_sort_direction(nil, sorting_direction), do: nil
+  defp build_cursor_fields_from_sort_direction(nil, _sorting_direction), do: nil
 
   defp build_cursor_fields_from_sort_direction(fields, sorting_direction) do
     Enum.map(fields, fn
