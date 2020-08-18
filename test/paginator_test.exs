@@ -305,11 +305,21 @@ defmodule PaginatorTest do
       customers: {c1, _c2, _c3},
       payments: {_p1, _p2, _p3, _p4, p5, p6, p7, p8, _p9, _p10, _p11, _p12}
     } do
-      %Page{entries: entries, metadata: _metadata} =
-        customer_payments_by_amount(c1)
-        |> Repo.paginate(cursor_fields: [:amount, :charged_at, :id], limit: 50)
+      %Page{entries: entries, metadata: metadata} =
+        customer_payments_by_charged_at_and_amount(c1)
+        |> Repo.paginate(cursor_fields: [:charged_at, :amount, :id], limit: 2)
 
-      assert to_ids(entries) == to_ids([p6, p5, p7, p8])
+      assert to_ids(entries) == to_ids([p5, p6])
+
+      %Page{entries: entries, metadata: _metadata} =
+        customer_payments_by_charged_at_and_amount(c1)
+        |> Repo.paginate(
+          cursor_fields: [:charged_at, :amount, :id],
+          limit: 2,
+          after: metadata.after
+        )
+
+      assert to_ids(entries) == to_ids([p7, p8])
     end
 
     test "before cursor with multiple cursor_fields and pre-existing where filter in query", %{
@@ -317,7 +327,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       assert %Page{entries: [], metadata: _metadata} =
-               customer_payments_by_amount(c1)
+               customer_payments_by_charged_at_and_amount(c1)
                |> Repo.paginate(
                  cursor_fields: [:amount, :charged_at, :id],
                  before:
@@ -1019,11 +1029,11 @@ defmodule PaginatorTest do
     )
   end
 
-  defp customer_payments_by_amount(customer, direction \\ :asc) do
+  defp customer_payments_by_charged_at_and_amount(customer, direction \\ :asc) do
     from(
       p in Payment,
       where: p.customer_id == ^customer.id,
-      order_by: [{^direction, p.amount}, {^direction, p.charged_at}, {^direction, p.id}]
+      order_by: [{^direction, p.charged_at}, {^direction, p.amount}, {^direction, p.id}]
     )
   end
 
