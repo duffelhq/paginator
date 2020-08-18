@@ -2,8 +2,8 @@
 
 ## v1.0.0 - 2020-08-17
 
-* Fix Remote Code Execution Vulnerability (#69 - Thank you @p-!)
-* Fix cursor mismatch bug (#68)
+* Fix Remote Code Execution Vulnerability ([#69](https://github.com/duffelhq/paginator/pull/69) - Thank you @p-!)
+* Fix cursor mismatch bug ([#68]((https://github.com/duffelhq/paginator/pull/68))
 
 ## v0.6.0 - 2018-11-20
 
