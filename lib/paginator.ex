@@ -174,7 +174,8 @@ defmodule Paginator do
   def paginate(queryable, opts, repo, repo_opts) do
     config = Config.new(opts)
 
-    Config.validate!(config)
+    unless config.cursor_fields,
+      do: raise("expected `:cursor_fields` to be set in call to paginate/3")
 
     sorted_entries = entries(queryable, config, repo, repo_opts)
     paginated_entries = paginate_entries(sorted_entries, config)
@@ -202,10 +203,10 @@ defmodule Paginator do
   ### Example
 
       iex> Paginator.cursor_for_record(%Paginator.Customer{id: 1}, [:id])
-      "g3QAAAABZAACaWRhAQ=="
+      "g2sAAQE="
 
       iex> Paginator.cursor_for_record(%Paginator.Customer{id: 1, name: "Alice"}, [id: :asc, name: :desc])
-      "g3QAAAACZAACaWRhAWQABG5hbWVtAAAABUFsaWNl"
+      "g2wAAAACYQFtAAAABUFsaWNlag=="
   """
   @spec cursor_for_record(any(), [atom], (map(), atom() | {atom(), atom()} -> any())) :: binary()
   def cursor_for_record(
@@ -305,13 +306,9 @@ defmodule Paginator do
        }) do
     cursor_fields
     |> Enum.map(fn
-      {cursor_field, _order} ->
-        {cursor_field, fetch_cursor_value_fun.(schema, cursor_field)}
-
-      cursor_field when is_atom(cursor_field) ->
-        {cursor_field, fetch_cursor_value_fun.(schema, cursor_field)}
+      {cursor_field, _order} -> fetch_cursor_value_fun.(schema, cursor_field)
+      cursor_field when is_atom(cursor_field) -> fetch_cursor_value_fun.(schema, cursor_field)
     end)
-    |> Map.new()
     |> Cursor.encode()
   end
 
