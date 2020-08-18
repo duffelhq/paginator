@@ -48,7 +48,10 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp filter_values(query, fields, values, cursor_direction) when is_map(values) do
-    sorts = Enum.reject(values, fn val -> match?({_column, nil}, val) end)
+    sorts =
+      fields
+      |> Enum.map(fn {column, _order} -> {column, Map.get(values, column)} end)
+      |> Enum.reject(fn val -> match?({_column, nil}, val) end)
 
     dynamic_sorts =
       sorts
