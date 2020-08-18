@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.1 - 2020-08-17
+
+* Fix sorting bug in cursor query ([#73](https://github.com/duffelhq/paginator/pull/73))
+
 ## v1.0.0 - 2020-08-17
 
 * Fix Remote Code Execution Vulnerability ([#69](https://github.com/duffelhq/paginator/pull/69) - Thank you @p-!)
