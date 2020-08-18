@@ -1,12 +1,25 @@
 language: elixir
 sudo: false
 elixir:
-  - 1.4
-  - 1.5
-  - 1.6
+  - 1.7
+  - 1.8
+  - 1.9
+  - 1.10
 otp_release:
   - 19.3
   - 20.0
+  - 21.0
+  - 22.0
+matrix:
+  exclude:
+  - elixir: 1.8
+    otp_release: 19.3
+  - elixir: 1.9
+    otp_release: 19.3
+  - elixir: 1.10
+    otp_release: 19.3
+  - elixir: 1.10
+    otp_release: 20.0
 services:
   - postgresql
 before_script:
