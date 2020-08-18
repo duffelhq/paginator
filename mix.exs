@@ -8,6 +8,7 @@ defmodule Paginator.Mixfile do
       app: :paginator,
       version: @version,
       elixir: "~> 1.5",
+      elixirc_options: [warnings_as_errors: System.get_env("CI") == "true"],
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
