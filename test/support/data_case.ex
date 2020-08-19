@@ -1,4 +1,6 @@
 defmodule Paginator.DataCase do
+  @moduledoc false
+
   use ExUnit.CaseTemplate
 
   alias Ecto.Adapters.SQL.Sandbox, as: EctoSandbox
@@ -12,7 +14,7 @@ defmodule Paginator.DataCase do
       import Paginator.Factory
 
       alias Paginator.{Page, Page.Metadata}
-      alias Paginator.{Customer, Address, Payment}
+      alias Paginator.{Address, Customer, Payment}
     end
   end
 

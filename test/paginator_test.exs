@@ -1048,6 +1048,6 @@ defmodule PaginatorTest do
   end
 
   defp days_ago(days) do
-    DT.add!(DateTime.utc_now(), -(days * 86400))
+    DT.add!(DateTime.utc_now(), -(days * 86_400))
   end
 end

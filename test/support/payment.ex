@@ -1,4 +1,6 @@
 defmodule Paginator.Payment do
+  @moduledoc false
+
   use Ecto.Schema
 
   import Ecto.Query
