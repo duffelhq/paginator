@@ -24,6 +24,7 @@ services:
   - postgresql
 before_script:
   - psql -c "ALTER USER postgres WITH PASSWORD 'password';" -U postgres
+  - mix credo --strict
 script: mix test
 after_script:
   - mix inch.report
