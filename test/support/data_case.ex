@@ -1,6 +1,8 @@
 defmodule Paginator.DataCase do
   use ExUnit.CaseTemplate
 
+  alias Ecto.Adapters.SQL.Sandbox, as: EctoSandbox
+
   using _opts do
     quote do
       alias Paginator.Repo
@@ -15,10 +17,10 @@ defmodule Paginator.DataCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Paginator.Repo)
+    :ok = EctoSandbox.checkout(Paginator.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Paginator.Repo, {:shared, self()})
+      EctoSandbox.mode(Paginator.Repo, {:shared, self()})
     end
 
     :ok
