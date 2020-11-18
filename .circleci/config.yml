@@ -1,5 +1,18 @@
 version: 2.1
 
+commands:
+  setup_dependencies:
+    steps:
+      - run:
+          name: Install Hex
+          command: mix local.hex --force
+      - run:
+          name: Install Rebar
+          command: mix local.rebar --force
+      - run:
+          name: Fetch Elixir dependencies
+          command: mix deps.get
+
 executors:
   elixir:
     parameters:
@@ -26,15 +39,7 @@ jobs:
         default: "latest"
     steps:
       - checkout
-      - run:
-          name: Install Hex
-          command: mix local.hex --force
-      - run:
-          name: Install Rebar
-          command: mix local.rebar --force
-      - run:
-          name: Fetch Elixir dependencies
-          command: mix deps.get
+      - setup_dependencies
       - run:
           name: Run tests
           command: mix test
@@ -49,6 +54,7 @@ jobs:
         default: "latest"
     steps:
       - checkout
+      - setup_dependencies
       - run:
           name: Analyse documentation for improvements
           command: mix inch.report
