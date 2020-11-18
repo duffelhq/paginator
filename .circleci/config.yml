@@ -1,0 +1,82 @@
+version: 2.1
+
+executors:
+  elixir:
+    parameters:
+      tag:
+        type: string
+        default: "latest"
+    docker:
+      - image: circleci/elixir:<< parameters.tag >>
+        environment:
+          PGPASSWORD: secret-pass
+          PGUSER: postgres
+      - image: postgres:alpine
+        environment:
+          POSTGRES_PASSWORD: secret-pass
+
+jobs:
+  build:
+    executor:
+      name: elixir
+      tag: << parameters.tag >>
+    parameters:
+      tag:
+        type: string
+        default: "latest"
+    steps:
+      - checkout
+      - run:
+          name: Install Hex
+          command: mix local.hex --force
+      - run:
+          name: Install Rebar
+          command: mix local.rebar --force
+      - run:
+          name: Fetch Elixir dependencies
+          command: mix deps.get
+      - run:
+          name: Run tests
+          command: mix test
+
+  inch:
+    executor:
+      name: elixir
+      tag: << parameters.tag >>
+    parameters:
+      tag:
+        type: string
+        default: "latest"
+    steps:
+      - checkout
+      - run:
+          name: Analyse documentation for improvements
+          command: mix inch.report
+
+workflows:
+  ci:
+    jobs:
+      - build:
+          name: elixir-1.4
+          tag: "1.4"
+      - build:
+          name: elixir-1.5
+          tag: "1.5"
+      - build:
+          name: elixir-1.6
+          tag: "1.6"
+      - build:
+          name: elixir-1.7
+          tag: "1.7"
+      - build:
+          name: elixir-1.8
+          tag: "1.8"
+      - build:
+          name: elixir-1.9
+          tag: "1.9"
+      - build:
+          name: elixir-1.10
+          tag: "1.10"
+      - inch:
+          name: inch-1.10
+          tag: "1.10"
