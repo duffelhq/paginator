@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.2 - 2020-11-20
+
+* Update package dependencies
+  * `inch` -> 2.0
+  * `plug_crypto` -> 1.2.0
+  * `ex_doc` -> 0.23.0
+
 ## v1.0.1 - 2020-08-18
 
 * Fix sorting bug in cursor query ([#73](https://github.com/duffelhq/paginator/pull/73))
