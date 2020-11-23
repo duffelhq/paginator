@@ -74,6 +74,9 @@ workflows:
       - build:
           name: elixir-1.10
           tag: "1.10"
+      - build:
+          name: elixir-1.11
+          tag: "1.11"
       - inch:
-          name: inch-1.10
-          tag: "1.10"
+          name: inch-1.11
+          tag: "1.11"
