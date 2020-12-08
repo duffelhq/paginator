@@ -70,7 +70,24 @@ defmodule Paginator.Config do
 
   defp cursor_values_match_cursor_fields?(cursor_values, cursor_fields) do
     cursor_keys = cursor_values |> Map.keys() |> Enum.sort()
-    sorted_cursor_fields = cursor_fields |> Keyword.keys() |> Enum.sort()
+
+    sorted_cursor_fields =
+      cursor_fields
+      |> Enum.map(fn
+        {field, value} when is_atom(field) and value in @order_directions ->
+          field
+
+        {{schema, field}, value}
+        when is_atom(schema) and is_atom(field) and value in @order_directions ->
+          {schema, field}
+
+        field when is_atom(field) ->
+          field
+
+        {schema, field} when is_atom(schema) and is_atom(field) ->
+          {schema, field}
+      end)
+      |> Enum.sort()
 
     match?(^cursor_keys, sorted_cursor_fields)
   end
