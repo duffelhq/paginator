@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.3 - 2020-12-18
+
+* Fix cursor field validation bug ([#93](https://github.com/duffelhq/paginator/pull/93))
+
 ## v1.0.2 - 2020-11-20
 
 * Update package dependencies
