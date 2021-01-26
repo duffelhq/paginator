@@ -15,8 +15,8 @@ defmodule Paginator.Page.Metadata do
   @type opaque_cursor :: String.t()
 
   @type t :: %__MODULE__{
-          after: opaque_cursor(),
-          before: opaque_cursor(),
+          after: opaque_cursor() | nil,
+          before: opaque_cursor() | nil,
           limit: integer(),
           total_count: integer(),
           total_count_cap_exceeded: boolean()
