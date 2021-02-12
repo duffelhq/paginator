@@ -95,7 +95,7 @@ end
     cursor_after = metadata.after
 
     # return the next 50 posts
-    %{entries: entries, metadata: metadata} = Repo.paginate(query, after: cursor_after, cursor_fields: [{inserted_at: :asc}, {:id, :asc}], limit: 50)
+    %{entries: entries, metadata: metadata} = Repo.paginate(query, after: cursor_after, cursor_fields: [{:inserted_at, :asc}, {:id, :asc}], limit: 50)
 
     # assign the `before` cursor to a variable
     cursor_before = metadata.before
