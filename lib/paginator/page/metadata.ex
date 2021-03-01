@@ -18,8 +18,8 @@ defmodule Paginator.Page.Metadata do
           after: opaque_cursor() | nil,
           before: opaque_cursor() | nil,
           limit: integer(),
-          total_count: integer(),
-          total_count_cap_exceeded: boolean()
+          total_count: integer() | nil,
+          total_count_cap_exceeded: boolean() | nil
         }
 
   defstruct [:after, :before, :limit, :total_count, :total_count_cap_exceeded]
