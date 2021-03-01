@@ -4,7 +4,7 @@ on:
   push:
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   test:
@@ -79,17 +79,20 @@ jobs:
           ${{ runner.os }}-build-${{ matrix.otp }}
           ${{ runner.os }}-build
 
-    - name: Install Dependencies
-      run: |
-        mix local.hex --force
-        mix local.rebar --force
-        mix deps.get
+    - name: Install hex
+      run: mix local.hex --force
+
+    - name: Install rebar
+      run: mix local.rebar --force
+
+    - name: Install package dependencies
+      run: mix deps.get
+
+    - name: Remove compiled application files
+      run: mix clean
 
     - name: Run unit tests
-      run: |
-        mix clean
-        mix test
+      run: mix test
 
     - name: Check documentation quality
-      run: |
-        mix inch.report
+      run: mix inch.report
