@@ -59,7 +59,10 @@ jobs:
     - name: Install package dependencies
       run: mix deps.get
 
-    - name: Check documentation quality
+    - name: Check documentation quality locally
+      run: mix inch
+
+    - name: Report documentation quality
       run: mix inch.report
 
   test:
