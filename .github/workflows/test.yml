@@ -65,8 +65,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
           ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}
-          ${{ runner.os }}-mix-${{ matrix.otp }}
-          ${{ runner.os }}-mix
 
     - name: Restore _build cache
       uses: actions/cache@v2
@@ -76,8 +74,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
           ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}
-          ${{ runner.os }}-build-${{ matrix.otp }}
-          ${{ runner.os }}-build
 
     - name: Install hex
       run: mix local.hex --force
