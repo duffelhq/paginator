@@ -15,6 +15,9 @@ defmodule Paginator.Mixfile do
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      dialyzer: [
+        plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
+      ],
       package: package(),
       docs: docs()
     ]
@@ -30,6 +33,7 @@ defmodule Paginator.Mixfile do
   defp deps do
     [
       {:calendar, "~> 1.0.0", only: :test},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.0"},
       {:ex_doc, "~> 0.18", only: :dev, runtime: false},
