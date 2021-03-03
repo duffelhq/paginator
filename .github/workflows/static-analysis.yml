@@ -75,10 +75,10 @@ jobs:
       uses: actions/cache@v2
       with:
         path: priv/plts
-        key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+        key: ${{ runner.os }}-dialyzer-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
         restore-keys: |
-          ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-          ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}
+          ${{ runner.os }}-dialyzer-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          ${{ runner.os }}-dialyzer-${{ matrix.otp }}-${{ matrix.elixir }}
 
     - name: Run dialyzer
       run: mix dialyzer --format dialyxir
