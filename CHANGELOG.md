@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.0.4 - 2021-03-15
+
+* Fix type errors, thanks! @djthread:
+  * ([#96](https://github.com/duffelhq/paginator/pull/96))
+  * ([#98](https://github.com/duffelhq/paginator/pull/98))
+* Fix tuples typo in documentation: ([#99](https://github.com/duffelhq/paginator/pull/99), thanks! @iamsekun)
+* Use GitHub Actions for continuous integration: ([#100](https://github.com/duffelhq/paginator/pull/100), thanks! @dolfinus)
+* Update package dependencies
+  * `calendar` -> 1.0.0
+  * `ecto` -> 3.0.9
+  * `ex_machina` -> 2.7.0
+  * `plug_crypto` -> 1.2.1
+  * `postgrex` -> 0.14.3
+
 ## v1.0.3 - 2020-12-18
 
 * Fix cursor field validation bug ([#93](https://github.com/duffelhq/paginator/pull/93))
