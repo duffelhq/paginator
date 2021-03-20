@@ -7,70 +7,27 @@ on:
       - main
 
 jobs:
-  inch:
-    name: Analyse Documentation
-    runs-on: ubuntu-18.04
-
-    strategy:
-      matrix:
-        elixir:
-        - "1.11"
-        otp:
-        - "23.0"
-
+  check_duplicate_runs:
+    name: Check for duplicate runs
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Set up Elixir
-      uses: actions/setup-elixir@v1
-      with:
-        elixir-version: ${{ matrix.elixir }}
-        otp-version: ${{ matrix.otp }}
-
-    - name: Restore deps cache
-      uses: actions/cache@v2
-      with:
-        path: deps
-        key: ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-          ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}
-
-    - name: Restore _build cache
-      uses: actions/cache@v2
-      with:
-        path: _build
-        key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-          ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}
-
-    - name: Install hex
-      run: mix local.hex --force
-
-    - name: Install rebar
-      run: mix local.rebar --force
-
-    - name: Install package dependencies
-      run: mix deps.get
-
-    - name: Remove compiled application files
-      run: mix clean
-
-    - name: Compile dependencies
-      run: mix compile
-
-    - name: Check documentation quality locally
-      run: mix inch
-
-    - name: Report documentation quality
-      if: github.event_name == 'push'
-      run: mix inch.report
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          concurrent_skipping: always
+          cancel_others: true
+          skip_after_successful_duplicate: true
+          paths_ignore: '["**/README.md", "**/CHANGELOG.md", "**/LICENSE.txt"]'
+          do_not_skip: '["pull_request"]'
 
   test:
     name: Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}
     runs-on: ubuntu-18.04
+    needs: check_duplicate_runs
+    if: ${{ needs.check_duplicate_runs.outputs.should_skip != 'true' }}
     services:
       postgres:
         image: postgres
@@ -121,26 +78,60 @@ jobs:
     - name: Restore deps cache
       uses: actions/cache@v2
       with:
-        path: deps
-        key: ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}-git-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-          ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}
+          ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}
 
-    - name: Restore _build cache
+    - name: Install package dependencies
+      run: mix deps.get
+
+    - name: Remove compiled application files
+      run: mix clean
+
+    - name: Compile dependencies
+      run: mix compile
+      env:
+        MIX_ENV: test
+
+    - name: Run unit tests
+      run: mix test
+
+  inch:
+    name: Analyse Documentation
+    runs-on: ubuntu-18.04
+    needs: test
+
+    strategy:
+      matrix:
+        elixir:
+        - "1.11"
+        otp:
+        - "23.0"
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Elixir
+      uses: actions/setup-elixir@v1
+      with:
+        elixir-version: ${{ matrix.elixir }}
+        otp-version: ${{ matrix.otp }}
+
+    - name: Restore deps cache
       uses: actions/cache@v2
       with:
-        path: _build
-        key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}-git-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-          ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}
-
-    - name: Install hex
-      run: mix local.hex --force
-
-    - name: Install rebar
-      run: mix local.rebar --force
+          ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}
 
     - name: Install package dependencies
       run: mix deps.get
@@ -151,5 +142,9 @@ jobs:
     - name: Compile dependencies
       run: mix compile
 
-    - name: Run unit tests
-      run: mix test
+    - name: Check documentation quality locally
+      run: mix inch
+
+    - name: Report documentation quality
+      if: github.event_name == 'push'
+      run: mix inch.report
