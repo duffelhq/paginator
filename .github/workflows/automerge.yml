@@ -1,7 +1,7 @@
 name: Automerge
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - assigned
       - opened
@@ -10,7 +10,7 @@ on:
       - synchronize
       - edited
       - ready_for_review
-      - review_requested
+      - review_requested 
       - reopened
       - unlocked
   pull_request_review:
@@ -22,8 +22,8 @@ jobs:
   automerge:
     name: Automatically merge pull requests
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
-
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && contains(github.event.pull_request.labels.*.name, 'dependencies')
+      
     steps:
       - name: Wait for tests
         uses: fountainhead/action-wait-for-check@v1.0.0
@@ -34,16 +34,22 @@ jobs:
           ref: ${{ github.head_ref || github.ref }}
           intervalSeconds: 60
           timeoutSeconds: 3600
+          
+      - name: Approve PR
+        uses: hmarr/auto-approve-action@v2
+        if: steps.wait-for-tests.outputs.conclusion == 'success'
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Merge PR
         if: steps.wait-for-tests.outputs.conclusion == 'success'
         uses: "pascalgn/automerge-action@v0.13.0"
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          MERGE_LABELS: 'dependencies,!wip,!work in progress'
+          MERGE_LABELS: '!wip,!work in progress'
           MERGE_METHOD: rebase
           MERGE_FORKS: false
           MERGE_RETRIES: "5"
-          MERGE_RETRY_SLEEP: 10000
+          MERGE_RETRY_SLEEP: "10000"
           UPDATE_LABELS: ""
-          UPDATE_METHOD: rebase
+          UPDATE_METHOD: "rebase"
