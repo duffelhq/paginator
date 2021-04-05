@@ -39,13 +39,13 @@ jobs:
         uses: hmarr/auto-approve-action@v2
         if: steps.wait-for-tests.outputs.conclusion == 'success'
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          github-token: "${{ secrets.PERSONAL_TOKEN }}"
 
       - name: Merge PR
         if: steps.wait-for-tests.outputs.conclusion == 'success'
         uses: "pascalgn/automerge-action@v0.13.0"
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: "${{ secrets.PERSONAL_TOKEN }}"
           MERGE_LABELS: '!wip,!work in progress'
           MERGE_METHOD: rebase
           MERGE_FORKS: false
