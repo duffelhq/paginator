@@ -15,7 +15,7 @@ jobs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+        uses: fkirc/skip-duplicate-actions@v3.4.0
         with:
           concurrent_skipping: always
           cancel_others: true
@@ -75,7 +75,7 @@ jobs:
         elixir-version: ${{ matrix.elixir }}
         otp-version: ${{ matrix.otp }}
 
-    - name: Restore deps cache
+    - name: Restore build and deps caches
       uses: actions/cache@v2
       with:
         path: |
@@ -122,7 +122,7 @@ jobs:
         elixir-version: ${{ matrix.elixir }}
         otp-version: ${{ matrix.otp }}
 
-    - name: Restore deps cache
+    - name: Restore build and deps caches
       uses: actions/cache@v2
       with:
         path: |
