@@ -1,0 +1,19 @@
+version: 2
+updates:
+- package-ecosystem: mix
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "09:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: ex_doc
+    versions:
+    - 0.24.0
+  - dependency-name: ecto_sql
+    versions:
+    - 3.5.4
+  - dependency-name: ex_machina
+    versions:
+    - 2.5.0
+    - 2.6.0
