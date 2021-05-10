@@ -2,10 +2,13 @@
 
 [![Build status](https://github.com/duffelhq/paginator/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/duffelhq/paginator/actions?query=branch%3Amain)
 [![Inline docs](http://inch-ci.org/github/duffelhq/paginator.svg)](http://inch-ci.org/github/duffelhq/paginator)
+[![Module Version](https://img.shields.io/hexpm/v/paginator.svg)](https://hex.pm/packages/paginator)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/paginator/)
+[![Total Download](https://img.shields.io/hexpm/dt/paginator.svg)](https://hex.pm/packages/paginator)
+[![License](https://img.shields.io/hexpm/l/paginator.svg)](https://github.com/duffelhq/paginator/blob/master/LICENSE)
+[![Last Updated](https://img.shields.io/github/last-commit/duffelhq/paginator.svg)](https://github.com/duffelhq/paginator/commits/master)
 
 [Cursor based pagination](http://use-the-index-luke.com/no-offset) for Elixir [Ecto](https://github.com/elixir-ecto/ecto).
-
-[Documentation](https://hexdocs.pm/paginator)
 
 ## Why?
 
@@ -59,56 +62,84 @@ page = MyApp.Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 50)
 # `page.metadata` contains the metadata associated with this page (cursors, limit, total count)
 ```
 
-## Install
+## Installation
 
-Add `paginator` to your list of dependencies in `mix.exs`:
+Add `:paginator` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:paginator, "~> 1.0.4"}]
+  [
+    {:paginator, "~> 1.0.4"}
+  ]
 end
 ```
 
 ## Usage
 
-1. Add `Paginator` to your repo.
+Add `Paginator` to your repo:
 
-    ```elixir
-    defmodule MyApp.Repo do
-      use Ecto.Repo,
-        otp_app: :my_app,
-        adapter: Ecto.Adapters.Postgres
+```elixir
+defmodule MyApp.Repo do
+  use Ecto.Repo,
+    otp_app: :my_app,
+    adapter: Ecto.Adapters.Postgres
 
-      use Paginator
-    end
-    ```
+  use Paginator
+end
+```
 
-2. Use the `paginate` function to paginate your queries.
+Use the `paginate` function to paginate your queries:
 
-    ```elixir
-    query = from(p in Post, order_by: [asc: p.inserted_at, asc: p.id])
+```elixir
+query = from(p in Post, order_by: [asc: p.inserted_at, asc: p.id])
 
-    # return the first 50 posts
-    %{entries: entries, metadata: metadata} = Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 50)
+# return the first 50 posts
+%{entries: entries, metadata: metadata}
+  = Repo.paginate(
+    query,
+    cursor_fields: [:inserted_at, :id],
+    limit: 50
+  )
 
-    # assign the `after` cursor to a variable
-    cursor_after = metadata.after
+# assign the `after` cursor to a variable
+cursor_after = metadata.after
 
-    # return the next 50 posts
-    %{entries: entries, metadata: metadata} = Repo.paginate(query, after: cursor_after, cursor_fields: [{:inserted_at, :asc}, {:id, :asc}], limit: 50)
+# return the next 50 posts
+%{entries: entries, metadata: metadata}
+  = Repo.paginate(
+    query,
+    after: cursor_after,
+    cursor_fields: [{:inserted_at, :asc}, {:id, :asc}],
+    limit: 50
+  )
 
-    # assign the `before` cursor to a variable
-    cursor_before = metadata.before
+# assign the `before` cursor to a variable
+cursor_before = metadata.before
 
-    # return the previous 50 posts (if no post was created in between it should be the same list as in our first call to `paginate`)
-    %{entries: entries, metadata: metadata} = Repo.paginate(query, before: cursor_before, cursor_fields: [:inserted_at, :id], limit: 50)
+# return the previous 50 posts (if no post was created in between it should be
+# the same list as in our first call to `paginate`)
+%{entries: entries, metadata: metadata}
+  = Repo.paginate(
+    query,
+    before: cursor_before,
+    cursor_fields: [:inserted_at, :id],
+    limit: 50
+  )
 
-    # return total count
-    # NOTE: this will issue a separate `SELECT COUNT(*) FROM table` query to the database.
-    %{entries: entries, metadata: metadata} = Repo.paginate(query, include_total_count: true, cursor_fields: [:inserted_at, :id], limit: 50)
+# return total count
+# NOTE: this will issue a separate `SELECT COUNT(*) FROM table` query to the
+# database.
+%{entries: entries, metadata: metadata}
+  = Repo.paginate(
+    query,
+    include_total_count: true,
+    cursor_fields: [:inserted_at, :id],
+    limit: 50
+  )
 
-    IO.puts "total count: #{metadata.total_count}"
-    ```
+IO.puts "total count: #{metadata.total_count}"
+```
+
 ## Security Considerations
 
 `Repo.paginate/4` will throw an `ArgumentError` should it detect an executable term in the cursor parameters passed to it (`before`, `after`).
@@ -132,7 +163,7 @@ create index("posts", [:inserted_at, :id])
 
 * This method requires a deterministic sort order. If the columns you are currently using for sorting don't match that
 definition, just add any unique column and extend your index accordingly.
-* You need to add order_by clauses yourself before passing your query to `paginate/2`. In the future we might do that
+* You need to add `:order_by` clauses yourself before passing your query to `paginate/2`. In the future we might do that
 for you automatically based on the fields specified in `:cursor_fields`.
 * There is an outstanding issue where Postgrex fails to properly builds the query if it includes custom PostgreSQL types.
 * This library has only be tested with PostgreSQL.
@@ -161,6 +192,8 @@ $ mix test
 $ mix docs
 ```
 
-## LICENSE
+## Copyright and License
 
-See [LICENSE](https://github.com/duffelhq/paginator/blob/master/LICENSE.txt)
+Copyright (c) 2017 Steve Domin.
+
+This software is licensed under [the MIT license](./LICENSE.md).

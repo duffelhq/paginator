@@ -1,11 +1,13 @@
 defmodule Paginator.Mixfile do
   use Mix.Project
 
+  @source_url "https://github.com/duffelhq/paginator"
   @version "1.0.4"
 
   def project do
     [
       app: :paginator,
+      name: "Paginator",
       version: @version,
       elixir: "~> 1.5",
       elixirc_options: [warnings_as_errors: System.get_env("CI") == "true"],
@@ -13,21 +15,8 @@ defmodule Paginator.Mixfile do
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-
-      # Hex
-      description: description(),
       package: package(),
-
-      # Docs
-      name: "Paginator",
-      source_url: "https://github.com/duffelhq/paginator",
-      homepage_url: "https://github.com/duffelhq/paginator",
-      docs: [
-        source_ref: "v#{@version}",
-        main: "Paginator",
-        canonical: "http://hexdocs.pm/paginator",
-        source_url: "https://github.com/duffelhq/paginator"
-      ]
+      docs: docs()
     ]
   end
 
@@ -43,7 +32,7 @@ defmodule Paginator.Mixfile do
       {:calendar, "~> 1.0.0", only: :test},
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.0"},
-      {:ex_doc, "~> 0.18", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.24.2", only: :dev, runtime: false},
       {:ex_machina, "~> 2.1", only: :test},
       {:inch_ex, "~> 2.0", only: [:dev, :test]},
       {:postgrex, "~> 0.13", optional: true},
@@ -51,17 +40,30 @@ defmodule Paginator.Mixfile do
     ]
   end
 
-  defp description do
-    """
-    Cursor based pagination for Elixir Ecto.
-    """
-  end
-
   defp package do
     [
+      description: "Cursor based pagination for Elixir Ecto.",
       maintainers: ["Steve Domin"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/duffelhq/paginator"}
+      links: %{
+        "Changelog" => "https://hexdocs.pm/paginator/changelog.html",
+        "GitHub" => @source_url
+      }
+    ]
+  end
+
+  defp docs do
+    [
+      extras: [
+        "CHANGELOG.md",
+        "LICENSE.md": [title: "License"],
+        "README.md": [title: "Overview"]
+      ],
+      main: "readme",
+      canonical: "http://hexdocs.pm/paginator",
+      source_url: @source_url,
+      source_ref: "v#{@version}",
+      formatters: ["html"]
     ]
   end
 end

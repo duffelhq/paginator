@@ -28,7 +28,7 @@ defmodule Paginator do
           total_count_primary_key_field: :uuid # sets the total_count_primary_key_field to uuid for calculate total_count
       end
 
-  Note that these values can be still be overriden when `paginate/3` is called.
+  Note that these values can be still be overridden when `paginate/3` is called.
 
   ### Use without macros
 
@@ -221,7 +221,7 @@ defmodule Paginator do
 
   @doc """
   Default function used to get the value of a cursor field from the supplied
-  map. This function can be overriden in the `Paginator.Config` using the
+  map. This function can be overridden in the `Paginator.Config` using the
   `fetch_cursor_value_fun` key.
 
   When using named bindings to sort on joined columns it will attempt to get
