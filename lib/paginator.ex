@@ -157,7 +157,7 @@ defmodule Paginator do
       Repo.paginate(query,
         cursor_fields: [{{:company, :name}, :asc}, id: :asc],
         fetch_cursor_value_fun: fn
-          post, {{:company, name}, _} ->
+          post, {:company, name} ->
             post.author.company.name
 
           post, field ->
