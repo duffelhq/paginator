@@ -4,6 +4,7 @@ defmodule Paginator.Ecto.Query do
   import Ecto.Query
 
   alias Paginator.Config
+  alias Paginator.Ecto.Query.DynamicFilterBuilder
 
   def paginate(queryable, config \\ [])
 
@@ -18,29 +19,11 @@ defmodule Paginator.Ecto.Query do
     paginate(queryable, config)
   end
 
-  defp get_operator(:asc, :before), do: :lt
-  defp get_operator(:desc, :before), do: :gt
-  defp get_operator(:asc, :after), do: :gt
-  defp get_operator(:desc, :after), do: :lt
-
-  defp get_operator(direction, _),
-    do: raise("Invalid sorting value :#{direction}, please use either :asc or :desc")
-
-  defp get_operator_for_field(cursor_fields, key, direction) do
-    {_, order} =
-      cursor_fields
-      |> Enum.find(fn {field_key, _order} ->
-        field_key == key
-      end)
-
-    get_operator(order, direction)
-  end
-
   # This clause is responsible for transforming legacy list cursors into map cursors
   defp filter_values(query, fields, values, cursor_direction) when is_list(values) do
     new_values =
       fields
-      |> Keyword.keys()
+      |> Enum.map(&elem(&1, 0))
       |> Enum.zip(values)
       |> Map.new()
 
@@ -48,44 +31,39 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp filter_values(query, fields, values, cursor_direction) when is_map(values) do
-    sorts =
-      fields
-      |> Enum.map(fn {column, _order} -> {column, Map.get(values, column)} end)
-      |> Enum.reject(fn val -> match?({_column, nil}, val) end)
+    filters = build_where_expression(query, fields, values, cursor_direction)
 
-    dynamic_sorts =
-      sorts
-      |> Enum.with_index()
-      |> Enum.reduce(true, fn {{bound_column, value}, i}, dynamic_sorts ->
-        {position, column} = column_position(query, bound_column)
+    where(query, [{q, 0}], ^filters)
+  end
 
-        dynamic = true
+  defp build_where_expression(query, [{column, order}], values, cursor_direction) do
+    value = Map.get(values, column)
+    {q_position, q_binding} = column_position(query, column)
 
-        dynamic =
-          case get_operator_for_field(fields, bound_column, cursor_direction) do
-            :lt ->
-              dynamic([{q, position}], field(q, ^column) < ^value and ^dynamic)
+    DynamicFilterBuilder.build!(%{
+      sort_order: order,
+      direction: cursor_direction,
+      value: value,
+      entity_position: q_position,
+      column: q_binding,
+      next_filters: true
+    })
+  end
 
-            :gt ->
-              dynamic([{q, position}], field(q, ^column) > ^value and ^dynamic)
-          end
+  defp build_where_expression(query, [{column, order} | fields], values, cursor_direction) do
+    value = Map.get(values, column)
+    {q_position, q_binding} = column_position(query, column)
 
-        dynamic =
-          sorts
-          |> Enum.take(i)
-          |> Enum.reduce(dynamic, fn {prev_column, prev_value}, dynamic ->
-            {position, prev_column} = column_position(query, prev_column)
-            dynamic([{q, position}], field(q, ^prev_column) == ^prev_value and ^dynamic)
-          end)
+    filters = build_where_expression(query, fields, values, cursor_direction)
 
-        if i == 0 do
-          dynamic([{q, position}], ^dynamic and ^dynamic_sorts)
-        else
-          dynamic([{q, position}], ^dynamic or ^dynamic_sorts)
-        end
-      end)
-
-    where(query, [{q, 0}], ^dynamic_sorts)
+    DynamicFilterBuilder.build!(%{
+      sort_order: order,
+      direction: cursor_direction,
+      value: value,
+      entity_position: q_position,
+      column: q_binding,
+      next_filters: filters
+    })
   end
 
   defp maybe_where(query, %Config{
@@ -160,7 +138,11 @@ defmodule Paginator.Ecto.Query do
             | expr:
                 Enum.map(expr, fn
                   {:desc, ast} -> {:asc, ast}
+                  {:desc_nulls_first, ast} -> {:asc_nulls_last, ast}
+                  {:desc_nulls_last, ast} -> {:asc_nulls_first, ast}
                   {:asc, ast} -> {:desc, ast}
+                  {:asc_nulls_last, ast} -> {:desc_nulls_first, ast}
+                  {:asc_nulls_first, ast} -> {:desc_nulls_last, ast}
                 end)
           }
         end
