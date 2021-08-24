@@ -17,7 +17,8 @@ defmodule Paginator.Config do
     :limit,
     :maximum_limit,
     :sort_direction,
-    :total_count_limit
+    :total_count_limit,
+    :page_booleans
   ]
 
   @default_total_count_primary_key_field :id
@@ -48,7 +49,8 @@ defmodule Paginator.Config do
         opts[:total_count_primary_key_field] || @default_total_count_primary_key_field,
       limit: limit(opts),
       sort_direction: opts[:sort_direction],
-      total_count_limit: opts[:total_count_limit] || @default_total_count_limit
+      total_count_limit: opts[:total_count_limit] || @default_total_count_limit,
+      page_booleans: opts[:page_booleans] || false
     }
     |> convert_deprecated_config()
   end

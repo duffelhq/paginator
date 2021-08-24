@@ -88,6 +88,9 @@ defmodule Paginator do
     * `:total_count_limit` - Running count queries on tables with a large number
     of records is expensive so it is capped by default. Can be set to `:infinity`
     in order to count all the records. Defaults to `10,000`.
+    * `:page_booleans` - populates `:has_next_page` and `:has_previous_page` booleans.
+    Always returns an `:after` and `:before` cursor (if available). This mimics
+    [relay style pagination](https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo)
 
   ## Repo options
 
@@ -187,7 +190,9 @@ defmodule Paginator do
         after: after_cursor(paginated_entries, sorted_entries, config),
         limit: config.limit,
         total_count: total_count,
-        total_count_cap_exceeded: total_count_cap_exceeded
+        total_count_cap_exceeded: total_count_cap_exceeded,
+        has_next_page: has_next_page(paginated_entries, sorted_entries, config),
+        has_previous_page: has_previous_page(paginated_entries, sorted_entries, config),
       }
     }
   end
@@ -260,6 +265,10 @@ defmodule Paginator do
     first_or_nil(paginated_entries, config)
   end
 
+  defp before_cursor(paginated_entries, _sorted_entries, %Config{page_booleans: true} = config) do
+    first_or_nil(paginated_entries, config)
+  end
+
   defp before_cursor(paginated_entries, sorted_entries, config) do
     if first_page?(sorted_entries, config) do
       nil
@@ -283,6 +292,10 @@ defmodule Paginator do
     last_or_nil(paginated_entries, config)
   end
 
+  defp after_cursor(paginated_entries, _sorted_entries, %Config{page_booleans: true} = config) do
+    last_or_nil(paginated_entries, config)
+  end
+
   defp after_cursor(paginated_entries, sorted_entries, config) do
     if last_page?(sorted_entries, config) do
       nil
@@ -297,6 +310,44 @@ defmodule Paginator do
     else
       nil
     end
+  end
+
+  defp has_next_page(_paginated_entries, _sorted_entries, %Config{page_booleans: false}) do
+    nil
+  end
+
+  defp has_next_page([], [], _config) do
+    false
+  end
+
+  defp has_next_page(_paginated_entries, _sorted_entries, %Config{before: c_before})
+      when not is_nil(c_before) do
+    true
+  end
+
+  defp has_next_page(_paginated_entries, sorted_entries, config) do
+    !last_page?(sorted_entries, config)
+  end
+
+  defp has_previous_page(_paginated_entries, _sorted_entries, %Config{page_booleans: false}) do
+    nil
+  end
+
+  defp has_previous_page([], [], _config) do
+    false
+  end
+
+  defp has_previous_page(_paginated_entries, _sorted_entries, %Config{after: nil, before: nil}) do
+    false
+  end
+
+  defp has_previous_page(_paginated_entries, _sorted_entries, %Config{after: c_after})
+       when not is_nil(c_after) do
+    true
+  end
+
+  defp has_previous_page(_paginated_entries, sorted_entries, config) do
+    !first_page?(sorted_entries, config)
   end
 
   defp fetch_cursor_value(schema, %Config{
