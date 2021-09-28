@@ -24,5 +24,5 @@ defmodule Paginator.Page.Metadata do
           query_hash: integer()
         }
 
-  defstruct [:after, :before, :limit, :total_count, :total_count_cap_exceeded]
+  defstruct [:after, :before, :limit, :total_count, :total_count_cap_exceeded, :query_hash]
 end
