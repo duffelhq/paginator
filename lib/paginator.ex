@@ -187,7 +187,8 @@ defmodule Paginator do
         after: after_cursor(paginated_entries, sorted_entries, config),
         limit: config.limit,
         total_count: total_count,
-        total_count_cap_exceeded: total_count_cap_exceeded
+        total_count_cap_exceeded: total_count_cap_exceeded,
+        query_hash: :erlang.phash2(queryable)
       }
     }
   end

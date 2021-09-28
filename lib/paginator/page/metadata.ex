@@ -8,7 +8,8 @@ defmodule Paginator.Page.Metadata do
   * `before` - an opaque cursor representing the first row of the current page.
   * `limit` - the maximum number of entries that can be contained in this page.
   * `total_count` - the total number of entries matching the query.
-  * `total_count_cap_exceeded` - a boolean indicating whether the `:total_count_limit`
+  * `total_count_cap_exceeded` - a boolean indicating whether the `:total_count_limit`.
+  * `query_hash` - integer hash of current query.
   was exceeded.
   """
 
@@ -19,7 +20,8 @@ defmodule Paginator.Page.Metadata do
           before: opaque_cursor() | nil,
           limit: integer(),
           total_count: integer() | nil,
-          total_count_cap_exceeded: boolean() | nil
+          total_count_cap_exceeded: boolean() | nil,
+          query_hash: integer()
         }
 
   defstruct [:after, :before, :limit, :total_count, :total_count_cap_exceeded]
