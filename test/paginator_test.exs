@@ -1145,7 +1145,7 @@ defmodule PaginatorTest do
           {mapf.(page), nil}
         end
     end)
-    |> Stream.flat_map(&Function.identity/1)
+    |> Stream.flat_map(& &1)
     |> Enum.to_list()
   end
 
