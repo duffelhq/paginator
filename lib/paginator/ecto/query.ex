@@ -62,30 +62,57 @@ defmodule Paginator.Ecto.Query do
         dynamic = true
 
         dynamic =
-          case get_operator_for_field(fields, bound_column, cursor_direction) do
-            :lt ->
-              dynamic([{q, position}], field(q, ^column) < ^value and ^dynamic)
-
-            :gt ->
-              dynamic([{q, position}], field(q, ^column) > ^value and ^dynamic)
-          end
+          fields
+          |> get_operator_for_field(bound_column, cursor_direction)
+          |> build_cursor_where(position, column, value, dynamic)
 
         dynamic =
           sorts
           |> Enum.take(i)
           |> Enum.reduce(dynamic, fn {prev_column, prev_value}, dynamic ->
             {position, prev_column} = column_position(query, prev_column)
-            dynamic([{q, position}], field(q, ^prev_column) == ^prev_value and ^dynamic)
+            build_cursor_where(:prev, position, prev_column, prev_value, dynamic)
           end)
 
-        if i == 0 do
-          dynamic([{q, position}], ^dynamic and ^dynamic_sorts)
-        else
-          dynamic([{q, position}], ^dynamic or ^dynamic_sorts)
-        end
+        build_cursor_where(:with_sorts, i, dynamic, dynamic_sorts)
       end)
 
     where(query, [{q, 0}], ^dynamic_sorts)
+  end
+
+  defp build_cursor_where(:with_sorts, 0, dynamic, dynamic_sorts) do
+    dynamic([{q, position}], ^dynamic and ^dynamic_sorts)
+  end
+
+  defp build_cursor_where(:with_sorts, _, dynamic, dynamic_sorts) do
+    dynamic([{q, position}], ^dynamic or ^dynamic_sorts)
+  end
+
+  defp build_cursor_where(:lt, position, column, value, dynamic) when is_atom(column) do
+    dynamic([{q, position}], field(q, ^column) < ^value and ^dynamic)
+  end
+
+  defp build_cursor_where(:gt, position, column, value, dynamic) when is_atom(column) do
+    dynamic([{q, position}], field(q, ^column) > ^value and ^dynamic)
+  end
+
+  defp build_cursor_where(:prev, position, column, value, dynamic) when is_atom(column) do
+    dynamic([{q, position}], field(q, ^column) == ^value and ^dynamic)
+  end
+
+  defp build_cursor_where(:lt, _position, {_, handler}, value, dynamic)
+       when is_function(handler) do
+    dynamic([{q, position}], ^handler.() < ^value and ^dynamic)
+  end
+
+  defp build_cursor_where(:gt, _position, {_, handler}, value, dynamic)
+       when is_function(handler) do
+    dynamic([{q, position}], ^handler.() > ^value and ^dynamic)
+  end
+
+  defp build_cursor_where(:prev, _position, {_, handler}, value, dynamic)
+       when is_function(handler) do
+    dynamic([{q, position}], ^handler.() == ^value and ^dynamic)
   end
 
   defp maybe_where(query, %Config{
@@ -123,6 +150,10 @@ defmodule Paginator.Ecto.Query do
     |> filter_values(cursor_fields, after_values, :after)
     |> filter_values(cursor_fields, before_values, :before)
   end
+
+  # With custom column handler
+  defp column_position(_query, {_, handler} = column) when is_function(handler),
+    do: {0, column}
 
   # Lookup position of binding in query aliases
   defp column_position(query, {binding_name, column}) do
