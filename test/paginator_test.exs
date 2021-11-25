@@ -943,14 +943,15 @@ defmodule PaginatorTest do
 
     {:ok, customer_3} = Enum.fetch(list, 3)
 
+
     %Page{entries: entries, metadata: metadata} =
       base_customer_name
       |> customers_with_tsvector_rank()
       |> Repo.paginate(
-        after: encode_cursor([customer_3.rank_value, customer_3.id]),
+        after: encode_cursor(%{rank_value: customer_3.rank_value, id: customer_3.id}),
         limit: 3,
         fetch_cursor_value_fun: fn
-          schema, {:rank_value, _} ->
+          schema, :rank_value ->
             schema.rank_value
 
           schema, field ->
@@ -975,8 +976,8 @@ defmodule PaginatorTest do
     first_entry = List.first(entries)
 
     assert metadata == %Metadata{
-             after: encode_cursor([last_entry.rank_value, last_entry.id]),
-             before: encode_cursor([first_entry.rank_value, first_entry.id]),
+             after: encode_cursor(%{rank_value: last_entry.rank_value, id: last_entry.id}),
+             before: encode_cursor(%{rank_value: first_entry.rank_value, id: first_entry.id}),
              limit: 3
            }
   end
