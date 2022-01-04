@@ -34,8 +34,6 @@ defmodule PaginatorTest do
     page = payments_by_charged_at() |> Repo.paginate(opts)
     assert to_ids(page.entries) == to_ids([p5, p4, p1, p6])
     assert page.metadata.before == nil
-    # Question: Should this return a value?
-    # assert page.metadata.before == encode_cursor(%{charged_at: p5.charged_at, id: p5.id})
     assert page.metadata.after == encode_cursor(%{charged_at: p6.charged_at, id: p6.id})
     assert page.metadata.has_previous_page == false
     assert page.metadata.has_next_page == true
