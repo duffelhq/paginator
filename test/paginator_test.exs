@@ -157,7 +157,7 @@ defmodule PaginatorTest do
     assert page.metadata.before == nil
   end
 
-  test "returns an empty page when there are no results  with page_booleans" do
+  test "returns an empty page when there are no results with page_booleans" do
     page =
       payments_by_status("failed")
       |> Repo.paginate(cursor_fields: [:charged_at, :id], limit: 10, page_booleans: true)
