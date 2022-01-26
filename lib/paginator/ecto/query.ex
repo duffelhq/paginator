@@ -22,6 +22,10 @@ defmodule Paginator.Ecto.Query do
   defp get_operator(:desc, :before), do: :gt
   defp get_operator(:asc, :after), do: :gt
   defp get_operator(:desc, :after), do: :lt
+  defp get_operator(:desc_null, :after), do: :lt
+  defp get_operator(:desc_null, :before), do: :gt_null
+  defp get_operator(:asc_null, :before), do: :lt_null
+  defp get_operator(:asc_null, :after), do: :gt
 
   defp get_operator(direction, _),
     do: raise("Invalid sorting value :#{direction}, please use either :asc or :desc")
@@ -68,6 +72,12 @@ defmodule Paginator.Ecto.Query do
 
             :gt ->
               dynamic([{q, position}], field(q, ^column) > ^value and ^dynamic)
+
+            :lt_null ->
+              dynamic([{q, position}], field(q, ^column) < ^value or is_nil(field(q, ^column)))
+
+            :gt_null ->
+              dynamic([{q, position}], field(q, ^column) > ^value or is_nil(field(q, ^column)))
           end
 
         dynamic =
@@ -160,7 +170,11 @@ defmodule Paginator.Ecto.Query do
             | expr:
                 Enum.map(expr, fn
                   {:desc, ast} -> {:asc, ast}
+                  {:desc_nulls_last, ast} -> {:asc_nulls_first, ast}
+                  {:desc_nulls_first, ast} -> {:asc_nulls_last, ast}
                   {:asc, ast} -> {:desc, ast}
+                  {:asc_nulls_last, ast} -> {:desc_nulls_first, ast}
+                  {:asc_nulls_first, ast} -> {:desc_nulls_last, ast}
                 end)
           }
         end

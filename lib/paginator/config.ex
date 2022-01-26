@@ -25,7 +25,7 @@ defmodule Paginator.Config do
   @minimum_limit 1
   @maximum_limit 500
   @default_total_count_limit 10_000
-  @order_directions [:asc, :desc]
+  @order_directions [:asc, :desc, :asc_null, :desc_null]
 
   def new(opts \\ []) do
     %__MODULE__{
