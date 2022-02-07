@@ -2,7 +2,7 @@ defmodule Paginator.Mixfile do
   use Mix.Project
 
   @source_url "https://github.com/duffelhq/paginator"
-  @version "1.0.4"
+  @version "1.1.0"
 
   def project do
     [
