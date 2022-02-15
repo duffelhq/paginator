@@ -255,7 +255,7 @@ defmodule Paginator do
     Map.get(schema, field)
   end
 
-  defp before_cursor([], [], %Config{before: c_before, page_booleans: true} = config)
+  defp before_cursor([], [], %Config{before: c_before, page_booleans: true})
        when not is_nil(c_before) do
     c_before
   end
@@ -290,7 +290,7 @@ defmodule Paginator do
     end
   end
 
-  defp after_cursor([], [], %Config{after: c_after, page_booleans: true} = config)
+  defp after_cursor([], [], %Config{after: c_after, page_booleans: true})
        when not is_nil(c_after) do
     c_after
   end
