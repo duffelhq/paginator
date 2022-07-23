@@ -2,6 +2,7 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
   @behaviour Paginator.Ecto.Query.DynamicFilterBuilder
 
   import Ecto.Query
+  import Paginator.Ecto.Query.Helpers
 
   @impl Paginator.Ecto.Query.DynamicFilterBuilder
   def build_dynamic_filter(%{direction: :before, value: nil, next_filters: true}) do
@@ -19,8 +20,8 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
   def build_dynamic_filter(args = %{direction: :before, value: nil}) do
     dynamic(
       [{query, args.entity_position}],
-      (is_nil(field(query, ^args.column)) and ^args.next_filters) or
-        not is_nil(field(query, ^args.column))
+      (is_nil(^field_or_expr(args)) and ^args.next_filters) or
+        not is_nil(^field_or_expr(args))
     )
   end
 
@@ -34,7 +35,7 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
   def build_dynamic_filter(args = %{direction: :before, next_filters: true}) do
     dynamic(
       [{query, args.entity_position}],
-      field(query, ^args.column) > ^args.value
+      ^field_or_expr(args) > ^args.value
     )
   end
 
@@ -49,8 +50,8 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
   def build_dynamic_filter(args = %{direction: :before}) do
     dynamic(
       [{query, args.entity_position}],
-      (field(query, ^args.column) == ^args.value and ^args.next_filters) or
-        field(query, ^args.column) > ^args.value
+      (^field_or_expr(args) == ^args.value and ^args.next_filters) or
+        ^field_or_expr(args) > ^args.value
     )
   end
 
@@ -68,7 +69,7 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
   def build_dynamic_filter(args = %{direction: :after, value: nil}) do
     dynamic(
       [{query, args.entity_position}],
-      is_nil(field(query, ^args.column)) and ^args.next_filters
+      is_nil(^field_or_expr(args)) and ^args.next_filters
     )
   end
 
@@ -82,7 +83,7 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
   def build_dynamic_filter(args = %{direction: :after, next_filters: true}) do
     dynamic(
       [{query, args.entity_position}],
-      field(query, ^args.column) < ^args.value or is_nil(field(query, ^args.column))
+      ^field_or_expr(args) < ^args.value or is_nil(^field_or_expr(args))
     )
   end
 
@@ -98,9 +99,9 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
   def build_dynamic_filter(args = %{direction: :after}) do
     dynamic(
       [{query, args.entity_position}],
-      (field(query, ^args.column) == ^args.value and ^args.next_filters) or
-        field(query, ^args.column) < ^args.value or
-        is_nil(field(query, ^args.column))
+      (^field_or_expr(args) == ^args.value and ^args.next_filters) or
+        ^field_or_expr(args) < ^args.value or
+        is_nil(^field_or_expr(args))
     )
   end
 end
