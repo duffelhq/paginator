@@ -140,6 +140,51 @@ cursor_before = metadata.before
 IO.puts "total count: #{metadata.total_count}"
 ```
 
+## Dynamic expressions
+
+```elixir
+  query =
+    from(
+      f in Post,
+      # Alias for fragment must match witch cursor field name in fetch_cursor_value_fun and cursor_fields
+      select_merge: %{
+        rank_value:
+          fragment("ts_rank(document, plainto_tsquery('simple', ?)) AS rank_value", ^q)
+      },
+      where: fragment("document @@ plainto_tsquery('simple', ?)", ^q),
+      order_by: [
+        desc: fragment("rank_value"),
+        desc: f.id
+      ]
+    )
+    query
+    |> Repo.paginate(
+      limit: 30,
+      fetch_cursor_value_fun: fn
+        # Here we build the rank_value for each returned row
+        schema, :rank_value ->
+          {:ok, %{rows: [[rank_value]]}} =
+            Repo.query("SELECT ts_rank($1, plainto_tsquery('simple', $2))", [
+              schema.document,
+              q
+            ])
+          rank_value
+        schema, field ->
+          Paginator.default_fetch_cursor_value(schema, field)
+      end,
+      cursor_fields: [
+        {:rank_value, # Here we build the rank_value that will be used in the where clause
+         fn ->
+           dynamic(
+             [x],
+             fragment("ts_rank(document, plainto_tsquery('simple', ?))", ^q)
+           )
+         end},
+        :id
+      ]
+    )
+```
+
 ## Security Considerations
 
 `Repo.paginate/4` will throw an `ArgumentError` should it detect an executable term in the cursor parameters passed to it (`before`, `after`).

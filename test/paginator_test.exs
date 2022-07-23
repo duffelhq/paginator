@@ -1013,6 +1013,51 @@ defmodule PaginatorTest do
     end
   end
 
+  test "expression based field is passed to cursor_fields" do
+    base_customer_name = "Bob"
+
+    list = create_customers_with_similar_names(base_customer_name)
+
+    {:ok, customer_3} = Enum.fetch(list, 3)
+
+    %Page{entries: entries, metadata: metadata} =
+      base_customer_name
+      |> customers_with_tsvector_rank()
+      |> Repo.paginate(
+        after: encode_cursor(%{rank_value: customer_3.rank_value, id: customer_3.id}),
+        limit: 3,
+        fetch_cursor_value_fun: fn
+          schema, :rank_value ->
+            schema.rank_value
+
+          schema, field ->
+            Paginator.default_fetch_cursor_value(schema, field)
+        end,
+        cursor_fields: [
+          {:rank_value,
+           fn ->
+             dynamic(
+               [x],
+               fragment(
+                 "ts_rank(setweight(to_tsvector('simple', name), 'A'), plainto_tsquery('simple', ?))",
+                 ^base_customer_name
+               )
+             )
+           end},
+          :id
+        ]
+      )
+
+    last_entry = List.last(entries)
+    first_entry = List.first(entries)
+
+    assert metadata == %Metadata{
+             after: encode_cursor(%{rank_value: last_entry.rank_value, id: last_entry.id}),
+             before: encode_cursor(%{rank_value: first_entry.rank_value, id: first_entry.id}),
+             limit: 3
+           }
+  end
+
   defp to_ids(entries), do: Enum.map(entries, & &1.id)
 
   defp create_customers_and_payments(_context) do
@@ -1043,6 +1088,22 @@ defmodule PaginatorTest do
      customers: {c1, c2, c3},
      addresses: {a1, a2, a3},
      payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}}
+  end
+
+  defp create_customers_with_similar_names(base_customer_name) do
+    1..10
+    |> Enum.map(fn i ->
+      {:ok, %{rows: [[rank_value]]}} =
+        Repo.query(
+          "SELECT ts_rank(setweight(to_tsvector('simple', $1), 'A'), plainto_tsquery('simple', $2))",
+          [
+            "#{base_customer_name} #{i}",
+            base_customer_name
+          ]
+        )
+
+      insert(:customer, %{name: "#{base_customer_name} #{i}", rank_value: rank_value})
+    end)
   end
 
   defp payments_by_status(status, direction \\ :asc) do
@@ -1111,6 +1172,27 @@ defmodule PaginatorTest do
       p in Payment,
       where: p.customer_id == ^customer.id,
       order_by: [{^direction, p.charged_at}, {^direction, p.amount}, {^direction, p.id}]
+    )
+  end
+
+  defp customers_with_tsvector_rank(q) do
+    from(f in Customer,
+      select_merge: %{
+        rank_value:
+          fragment(
+            "ts_rank(setweight(to_tsvector('simple', name), 'A'), plainto_tsquery('simple', ?)) AS rank_value",
+            ^q
+          )
+      },
+      where:
+        fragment(
+          "setweight(to_tsvector('simple', name), 'A') @@ plainto_tsquery('simple', ?)",
+          ^q
+        ),
+      order_by: [
+        desc: fragment("rank_value"),
+        desc: f.id
+      ]
     )
   end
 
