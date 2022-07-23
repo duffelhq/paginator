@@ -9,14 +9,6 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
     raise("unstable sort order: nullable columns can't be used as the last term")
   end
 
-  def build_dynamic_filter(args = %{direction: :before, value: nil, column: {_, handler}}) do
-    dynamic(
-      [{query, args.entity_position}],
-      (is_nil(^handler.()) and ^args.next_filters) or
-        not is_nil(^handler.())
-    )
-  end
-
   def build_dynamic_filter(args = %{direction: :before, value: nil}) do
     dynamic(
       [{query, args.entity_position}],
@@ -25,25 +17,10 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
     )
   end
 
-  def build_dynamic_filter(args = %{direction: :before, next_filters: true, column: {_, handler}}) do
-    dynamic(
-      [{query, args.entity_position}],
-      ^handler.() > ^args.value
-    )
-  end
-
   def build_dynamic_filter(args = %{direction: :before, next_filters: true}) do
     dynamic(
       [{query, args.entity_position}],
       ^field_or_expr(args) > ^args.value
-    )
-  end
-
-  def build_dynamic_filter(args = %{direction: :before, column: {_, handler}}) do
-    dynamic(
-      [{query, args.entity_position}],
-      (^handler.() == ^args.value and ^args.next_filters) or
-        ^handler.() > ^args.value
     )
   end
 
@@ -59,13 +36,6 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
     raise("unstable sort order: nullable columns can't be used as the last term")
   end
 
-  def build_dynamic_filter(args = %{direction: :after, value: nil, column: {_, handler}}) do
-    dynamic(
-      [{query, args.entity_position}],
-      is_nil(^handler.()) and ^args.next_filters
-    )
-  end
-
   def build_dynamic_filter(args = %{direction: :after, value: nil}) do
     dynamic(
       [{query, args.entity_position}],
@@ -73,26 +43,10 @@ defmodule Paginator.Ecto.Query.DescNullsLast do
     )
   end
 
-  def build_dynamic_filter(args = %{direction: :after, next_filters: true, column: {_, handler}}) do
-    dynamic(
-      [{query, args.entity_position}],
-      ^handler.() < ^args.value or is_nil(^handler.())
-    )
-  end
-
   def build_dynamic_filter(args = %{direction: :after, next_filters: true}) do
     dynamic(
       [{query, args.entity_position}],
       ^field_or_expr(args) < ^args.value or is_nil(^field_or_expr(args))
-    )
-  end
-
-  def build_dynamic_filter(args = %{direction: :after, column: {_, handler}}) do
-    dynamic(
-      [{query, args.entity_position}],
-      (^handler.() == ^args.value and ^args.next_filters) or
-        ^handler.() < ^args.value or
-        is_nil(^handler.())
     )
   end
 
