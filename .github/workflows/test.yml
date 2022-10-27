@@ -64,6 +64,12 @@ jobs:
           otp: "19.3"
         - elixir: "1.11"
           otp: "20.0"
+        - elixir: "1.9"
+          otp: "23.0"
+        - elixir: "1.7"
+          otp: "23.0"
+        - elixir: "1.8"
+          otp: "23.0"
 
     steps:
     - name: Checkout
