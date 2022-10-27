@@ -120,7 +120,7 @@ defmodule Paginator.ConfigTest do
     test "raises ArgumentError when cursor_fields are not set" do
       config = Config.new([])
 
-      assert_raise Config.ArgumentError, "expected `:cursor_fields` to be set", fn ->
+      assert_raise ArgumentError, "expected `:cursor_fields` to be set", fn ->
         Config.validate!(config)
       end
     end
@@ -128,7 +128,7 @@ defmodule Paginator.ConfigTest do
     test "raises ArgumentError when after cursor does not match the cursor_fields" do
       config = Config.new(cursor_fields: [:date], after: complex_after())
 
-      assert_raise Config.ArgumentError,
+      assert_raise ArgumentError,
                    "expected `:after` cursor to match `:cursor_fields`",
                    fn ->
                      Config.validate!(config)
@@ -146,7 +146,7 @@ defmodule Paginator.ConfigTest do
             })
         )
 
-      assert_raise Config.ArgumentError,
+      assert_raise ArgumentError,
                    "expected `:after` cursor to match `:cursor_fields`",
                    fn ->
                      Config.validate!(config)
@@ -170,7 +170,7 @@ defmodule Paginator.ConfigTest do
     test "raises ArgumentError when before cursor does not match the cursor_fields" do
       config = Config.new(cursor_fields: [:id], before: complex_before())
 
-      assert_raise Config.ArgumentError,
+      assert_raise ArgumentError,
                    "expected `:before` cursor to match `:cursor_fields`",
                    fn ->
                      Config.validate!(config)
