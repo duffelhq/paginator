@@ -970,9 +970,7 @@ defmodule PaginatorTest do
   end
 
   for field0_order <- @available_sorting_order, field1_order <- @available_sorting_order do
-    test "paginates correctly when pages contains nulls - order by charged_at #{field0_order}, id #{
-           field1_order
-         }" do
+    test "paginates correctly when pages contains nulls - order by charged_at #{field0_order}, id #{field1_order}" do
       customer = insert(:customer)
 
       now = NaiveDateTime.utc_now()

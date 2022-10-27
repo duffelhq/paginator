@@ -207,7 +207,11 @@ defmodule Paginator do
       iex> Paginator.cursor_for_record(%Paginator.Customer{id: 1, name: "Alice"}, [id: :asc, name: :desc])
       "g3QAAAACZAACaWRhAWQABG5hbWVtAAAABUFsaWNl"
   """
-  @spec cursor_for_record(any(), [atom() | {atom(), atom()}], (map(), atom() | {atom(), atom()} -> any())) :: binary()
+  @spec cursor_for_record(
+          any(),
+          [atom() | {atom(), atom()}],
+          (map(), atom() | {atom(), atom()} -> any())
+        ) :: binary()
   def cursor_for_record(
         record,
         cursor_fields,
