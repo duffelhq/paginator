@@ -5,6 +5,7 @@ defmodule Paginator.TestMigration do
     create table(:customers) do
       add(:name, :string)
       add(:active, :boolean)
+      add(:internal_uuid, :uuid, null: false)
 
       timestamps()
     end

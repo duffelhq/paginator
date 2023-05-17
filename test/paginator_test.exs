@@ -1058,12 +1058,70 @@ defmodule PaginatorTest do
            }
   end
 
+  test "expression based field when combined with UUID field" do
+    base_customer_name = "Bob"
+
+    create_customers_with_similar_names(base_customer_name)
+
+    list = base_customer_name |> customers_with_tsvector_rank() |> Repo.all()
+    {:ok, customer_3} = Enum.fetch(list, 3)
+
+    %Page{entries: entries, metadata: metadata} =
+      base_customer_name
+      |> customers_with_tsvector_rank()
+      |> Repo.paginate(
+        after:
+          encode_cursor(%{
+            rank_value: customer_3.rank_value,
+            internal_uuid: customer_3.internal_uuid
+          }),
+        limit: 3,
+        fetch_cursor_value_fun: fn
+          schema, :rank_value ->
+            schema.rank_value
+
+          schema, field ->
+            Paginator.default_fetch_cursor_value(schema, field)
+        end,
+        cursor_fields: [
+          {:rank_value,
+           fn ->
+             dynamic(
+               [x],
+               fragment(
+                 "ts_rank(setweight(to_tsvector('simple', name), 'A'), plainto_tsquery('simple', ?))",
+                 ^base_customer_name
+               )
+             )
+           end},
+          :internal_uuid
+        ]
+      )
+
+    last_entry = List.last(entries)
+    first_entry = List.first(entries)
+
+    assert metadata == %Metadata{
+             after:
+               encode_cursor(%{
+                 rank_value: last_entry.rank_value,
+                 internal_uuid: last_entry.internal_uuid
+               }),
+             before:
+               encode_cursor(%{
+                 rank_value: first_entry.rank_value,
+                 internal_uuid: first_entry.internal_uuid
+               }),
+             limit: 3
+           }
+  end
+
   defp to_ids(entries), do: Enum.map(entries, & &1.id)
 
   defp create_customers_and_payments(_context) do
-    c1 = insert(:customer, %{name: "Bob"})
-    c2 = insert(:customer, %{name: "Alice"})
-    c3 = insert(:customer, %{name: "Charlie"})
+    c1 = insert(:customer, %{name: "Bob", internal_uuid: Ecto.UUID.generate()})
+    c2 = insert(:customer, %{name: "Alice", internal_uuid: Ecto.UUID.generate()})
+    c3 = insert(:customer, %{name: "Charlie", internal_uuid: Ecto.UUID.generate()})
 
     a1 = insert(:address, city: "London", customer: c1)
     a2 = insert(:address, city: "New York", customer: c2)
@@ -1102,7 +1160,11 @@ defmodule PaginatorTest do
           ]
         )
 
-      insert(:customer, %{name: "#{base_customer_name} #{i}", rank_value: rank_value})
+      insert(:customer, %{
+        name: "#{base_customer_name} #{i}",
+        internal_uuid: Ecto.UUID.generate(),
+        rank_value: rank_value
+      })
     end)
   end
 
@@ -1190,8 +1252,8 @@ defmodule PaginatorTest do
           ^q
         ),
       order_by: [
-        desc: fragment("rank_value"),
-        desc: f.id
+        asc: fragment("rank_value"),
+        asc: f.internal_uuid
       ]
     )
   end

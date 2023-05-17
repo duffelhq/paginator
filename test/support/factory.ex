@@ -6,6 +6,7 @@ defmodule Paginator.Factory do
   def customer_factory do
     %Customer{
       name: "Bob",
+      internal_uuid: Ecto.UUID.generate(),
       active: true
     }
   end
