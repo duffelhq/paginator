@@ -1,4 +1,4 @@
-defmodule Paginator.Ecto.Query.Helpers do
+defmodule Paginator.Ecto.Query.FieldOrExpression do
   import Ecto.Query
 
   def field_or_expr_is_nil(%{column: {_, handler}}) do

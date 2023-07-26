@@ -2,7 +2,7 @@ defmodule Paginator.Ecto.Query.AscNullsLast do
   @behaviour Paginator.Ecto.Query.DynamicFilterBuilder
 
   import Ecto.Query
-  import Paginator.Ecto.Query.Helpers
+  import Paginator.Ecto.Query.FieldOrExpression
 
   @impl Paginator.Ecto.Query.DynamicFilterBuilder
   def build_dynamic_filter(%{direction: :after, value: nil, next_filters: true}) do

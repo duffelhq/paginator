@@ -1026,13 +1026,6 @@ defmodule PaginatorTest do
       |> Repo.paginate(
         after: encode_cursor(%{rank_value: customer_3.rank_value, id: customer_3.id}),
         limit: 3,
-        fetch_cursor_value_fun: fn
-          schema, :rank_value ->
-            schema.rank_value
-
-          schema, field ->
-            Paginator.default_fetch_cursor_value(schema, field)
-        end,
         cursor_fields: [
           {:rank_value,
            fn ->
@@ -1076,13 +1069,6 @@ defmodule PaginatorTest do
             internal_uuid: customer_3.internal_uuid
           }),
         limit: 3,
-        fetch_cursor_value_fun: fn
-          schema, :rank_value ->
-            schema.rank_value
-
-          schema, field ->
-            Paginator.default_fetch_cursor_value(schema, field)
-        end,
         cursor_fields: [
           {:rank_value,
            fn ->
