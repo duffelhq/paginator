@@ -10,7 +10,7 @@ jobs:
   check_duplicate_runs:
     name: Check for duplicate runs
     continue-on-error: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -25,7 +25,7 @@ jobs:
 
   test:
     name: Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: check_duplicate_runs
     if: ${{ needs.check_duplicate_runs.outputs.should_skip != 'true' }}
     services:
@@ -46,24 +46,21 @@ jobs:
         - "1.10"
         - "1.11"
         otp:
-        - "19.3"
         - "20.0"
         - "21.0"
         - "22.0.2"
         - "23.0"
         exclude:
-        - elixir: "1.8"
-          otp: "19.3"
+        - elixir: "1.10"
+          otp: "20.0"
+        - elixir: "1.11"
+          otp: "20.0"
         - elixir: "1.9"
-          otp: "19.3"
-        - elixir: "1.10"
-          otp: "19.3"
-        - elixir: "1.10"
-          otp: "20.0"
-        - elixir: "1.11"
-          otp: "19.3"
-        - elixir: "1.11"
-          otp: "20.0"
+          otp: "23.0"
+        - elixir: "1.7"
+          otp: "23.0"
+        - elixir: "1.8"
+          otp: "23.0"
 
     steps:
     - name: Checkout
@@ -101,7 +98,7 @@ jobs:
 
   inch:
     name: Analyse Documentation
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: test
 
     strategy:

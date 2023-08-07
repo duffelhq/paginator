@@ -120,7 +120,7 @@ defmodule Paginator.ConfigTest do
     test "raises ArgumentError when cursor_fields are not set" do
       config = Config.new([])
 
-      assert_raise ArgumentError, "expected `:cursor_fields` to be set", fn ->
+      assert_raise Config.ArgumentError, "expected `:cursor_fields` to be set", fn ->
         Config.validate!(config)
       end
     end
@@ -128,9 +128,11 @@ defmodule Paginator.ConfigTest do
     test "raises ArgumentError when after cursor does not match the cursor_fields" do
       config = Config.new(cursor_fields: [:date], after: complex_after())
 
-      assert_raise ArgumentError, "expected `:after` cursor to match `:cursor_fields`", fn ->
-        Config.validate!(config)
-      end
+      assert_raise Config.ArgumentError,
+                   "expected `:after` cursor to match `:cursor_fields`",
+                   fn ->
+                     Config.validate!(config)
+                   end
     end
 
     test "raises ArgumentError when after cursor does not match cursor_fields with schema" do
@@ -144,9 +146,11 @@ defmodule Paginator.ConfigTest do
             })
         )
 
-      assert_raise ArgumentError, "expected `:after` cursor to match `:cursor_fields`", fn ->
-        Config.validate!(config)
-      end
+      assert_raise Config.ArgumentError,
+                   "expected `:after` cursor to match `:cursor_fields`",
+                   fn ->
+                     Config.validate!(config)
+                   end
     end
 
     test "ok when after cursor matches cursor_fields with schema" do
@@ -166,9 +170,11 @@ defmodule Paginator.ConfigTest do
     test "raises ArgumentError when before cursor does not match the cursor_fields" do
       config = Config.new(cursor_fields: [:id], before: complex_before())
 
-      assert_raise ArgumentError, "expected `:before` cursor to match `:cursor_fields`", fn ->
-        Config.validate!(config)
-      end
+      assert_raise Config.ArgumentError,
+                   "expected `:before` cursor to match `:cursor_fields`",
+                   fn ->
+                     Config.validate!(config)
+                   end
     end
   end
 

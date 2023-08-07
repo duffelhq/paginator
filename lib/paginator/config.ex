@@ -20,6 +20,10 @@ defmodule Paginator.Config do
     :total_count_limit
   ]
 
+  defmodule ArgumentError do
+    defexception [:message]
+  end
+
   @default_total_count_primary_key_field :id
   @default_limit 50
   @minimum_limit 1
@@ -55,15 +59,19 @@ defmodule Paginator.Config do
 
   def validate!(%__MODULE__{} = config) do
     unless config.cursor_fields do
-      raise(ArgumentError, "expected `:cursor_fields` to be set")
+      raise(Paginator.Config.ArgumentError, message: "expected `:cursor_fields` to be set")
     end
 
     if !cursor_values_match_cursor_fields?(config.after_values, config.cursor_fields) do
-      raise(ArgumentError, message: "expected `:after` cursor to match `:cursor_fields`")
+      raise(Paginator.Config.ArgumentError,
+        message: "expected `:after` cursor to match `:cursor_fields`"
+      )
     end
 
     if !cursor_values_match_cursor_fields?(config.before_values, config.cursor_fields) do
-      raise(ArgumentError, message: "expected `:before` cursor to match `:cursor_fields`")
+      raise(Paginator.Config.ArgumentError,
+        message: "expected `:before` cursor to match `:cursor_fields`"
+      )
     end
   end
 
