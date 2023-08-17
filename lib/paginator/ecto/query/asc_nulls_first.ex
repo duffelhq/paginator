@@ -2,6 +2,7 @@ defmodule Paginator.Ecto.Query.AscNullsFirst do
   @behaviour Paginator.Ecto.Query.DynamicFilterBuilder
 
   import Ecto.Query
+  import Paginator.Ecto.Query.FieldOrExpression
 
   @impl Paginator.Ecto.Query.DynamicFilterBuilder
   def build_dynamic_filter(%{direction: :after, value: nil, next_filters: true}) do
@@ -11,23 +12,23 @@ defmodule Paginator.Ecto.Query.AscNullsFirst do
   def build_dynamic_filter(args = %{direction: :after, value: nil}) do
     dynamic(
       [{query, args.entity_position}],
-      (is_nil(field(query, ^args.column)) and ^args.next_filters) or
-        not is_nil(field(query, ^args.column))
+      (^field_or_expr_is_nil(args) and ^args.next_filters) or
+        not (^field_or_expr_is_nil(args))
     )
   end
 
   def build_dynamic_filter(args = %{direction: :after, next_filters: true}) do
     dynamic(
       [{query, args.entity_position}],
-      field(query, ^args.column) > ^args.value
+      ^field_or_expr_greater(args)
     )
   end
 
   def build_dynamic_filter(args = %{direction: :after}) do
     dynamic(
       [{query, args.entity_position}],
-      (field(query, ^args.column) == ^args.value and ^args.next_filters) or
-        field(query, ^args.column) > ^args.value
+      (^field_or_expr_equal(args) and ^args.next_filters) or
+        ^field_or_expr_greater(args)
     )
   end
 
@@ -38,23 +39,23 @@ defmodule Paginator.Ecto.Query.AscNullsFirst do
   def build_dynamic_filter(args = %{direction: :before, value: nil}) do
     dynamic(
       [{query, args.entity_position}],
-      is_nil(field(query, ^args.column)) and ^args.next_filters
+      ^field_or_expr_is_nil(args) and ^args.next_filters
     )
   end
 
   def build_dynamic_filter(args = %{direction: :before, next_filters: true}) do
     dynamic(
       [{query, args.entity_position}],
-      field(query, ^args.column) < ^args.value or is_nil(field(query, ^args.column))
+      ^field_or_expr_less(args) or ^field_or_expr_is_nil(args)
     )
   end
 
   def build_dynamic_filter(args = %{direction: :before}) do
     dynamic(
       [{query, args.entity_position}],
-      (field(query, ^args.column) == ^args.value and ^args.next_filters) or
-        field(query, ^args.column) < ^args.value or
-        is_nil(field(query, ^args.column))
+      (^field_or_expr_equal(args) and ^args.next_filters) or
+        ^field_or_expr_less(args) or
+        ^field_or_expr_is_nil(args)
     )
   end
 end
