@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Refactor.AppendSingleItem
 defmodule PaginatorTest do
   use Paginator.DataCase
   doctest Paginator
@@ -13,15 +14,15 @@ defmodule PaginatorTest do
   } do
     opts = [cursor_fields: [:charged_at, :id], sort_direction: :asc, limit: 4]
 
-    page = payments_by_charged_at() |> Repo.paginate(opts)
+    page = Repo.paginate(payments_by_charged_at(), opts)
     assert to_ids(page.entries) == to_ids([p5, p4, p1, p6])
     assert page.metadata.after == encode_cursor(%{charged_at: p6.charged_at, id: p6.id})
 
-    page = payments_by_charged_at() |> Repo.paginate(opts ++ [after: page.metadata.after])
+    page = Repo.paginate(payments_by_charged_at(), opts ++ [after: page.metadata.after])
     assert to_ids(page.entries) == to_ids([p7, p3, p10, p2])
     assert page.metadata.after == encode_cursor(%{charged_at: p2.charged_at, id: p2.id})
 
-    page = payments_by_charged_at() |> Repo.paginate(opts ++ [after: page.metadata.after])
+    page = Repo.paginate(payments_by_charged_at(), opts ++ [after: page.metadata.after])
     assert to_ids(page.entries) == to_ids([p12, p8, p9, p11])
     assert page.metadata.after == nil
   end
@@ -31,7 +32,7 @@ defmodule PaginatorTest do
   } do
     opts = [cursor_fields: [:charged_at, :id], sort_direction: :asc, limit: 4]
 
-    page = payments_by_charged_at() |> Repo.paginate(opts)
+    page = Repo.paginate(payments_by_charged_at(), opts)
     assert to_ids(page.entries) == to_ids([p5, p4, p1, p6])
     assert %{charged_at: charged_at, id: id} = Cursor.decode(page.metadata.after)
     assert charged_at == p6.charged_at
@@ -39,7 +40,7 @@ defmodule PaginatorTest do
 
     legacy_cursor = encode_legacy_cursor([charged_at, id])
 
-    page = payments_by_charged_at() |> Repo.paginate(opts ++ [after: legacy_cursor])
+    page = Repo.paginate(payments_by_charged_at(), opts ++ [after: legacy_cursor])
     assert to_ids(page.entries) == to_ids([p7, p3, p10, p2])
     assert %{charged_at: charged_at, id: id} = Cursor.decode(page.metadata.after)
     assert charged_at == p2.charged_at
@@ -47,7 +48,7 @@ defmodule PaginatorTest do
 
     legacy_cursor = encode_legacy_cursor([charged_at, id])
 
-    page = payments_by_charged_at() |> Repo.paginate(opts ++ [after: legacy_cursor])
+    page = Repo.paginate(payments_by_charged_at(), opts ++ [after: legacy_cursor])
     assert to_ids(page.entries) == to_ids([p12, p8, p9, p11])
     assert page.metadata.after == nil
   end
@@ -58,17 +59,19 @@ defmodule PaginatorTest do
     opts = [cursor_fields: [:charged_at, :id], sort_direction: :asc, limit: 4]
 
     page =
-      payments_by_charged_at()
-      |> Repo.paginate(opts ++ [before: encode_cursor(%{charged_at: p11.charged_at, id: p11.id})])
+      Repo.paginate(
+        payments_by_charged_at(),
+        opts ++ [before: encode_cursor(%{charged_at: p11.charged_at, id: p11.id})]
+      )
 
     assert to_ids(page.entries) == to_ids([p2, p12, p8, p9])
     assert page.metadata.before == encode_cursor(%{charged_at: p2.charged_at, id: p2.id})
 
-    page = payments_by_charged_at() |> Repo.paginate(opts ++ [before: page.metadata.before])
+    page = Repo.paginate(payments_by_charged_at(), opts ++ [before: page.metadata.before])
     assert to_ids(page.entries) == to_ids([p6, p7, p3, p10])
     assert page.metadata.before == encode_cursor(%{charged_at: p6.charged_at, id: p6.id})
 
-    page = payments_by_charged_at() |> Repo.paginate(opts ++ [before: page.metadata.before])
+    page = Repo.paginate(payments_by_charged_at(), opts ++ [before: page.metadata.before])
     assert to_ids(page.entries) == to_ids([p5, p4, p1])
     assert page.metadata.after == encode_cursor(%{charged_at: p1.charged_at, id: p1.id})
     assert page.metadata.before == nil
@@ -76,7 +79,8 @@ defmodule PaginatorTest do
 
   test "returns an empty page when there are no results" do
     page =
-      payments_by_status("failed")
+      "failed"
+      |> payments_by_status()
       |> Repo.paginate(cursor_fields: [:charged_at, :id], limit: 10)
 
     assert page.entries == []
@@ -89,8 +93,11 @@ defmodule PaginatorTest do
       payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at()
-        |> Repo.paginate(cursor_fields: [:charged_at, :id], sort_direction: :asc, limit: 50)
+        Repo.paginate(payments_by_charged_at(),
+          cursor_fields: [:charged_at, :id],
+          sort_direction: :asc,
+          limit: 50
+        )
 
       assert to_ids(entries) == to_ids([p5, p4, p1, p6, p7, p3, p10, p2, p12, p8, p9, p11])
       assert metadata == %Metadata{after: nil, before: nil, limit: 50}
@@ -100,8 +107,7 @@ defmodule PaginatorTest do
       payments: {p1, p2, p3, _p4, _p5, p6, p7, p8, p9, p10, _p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_charged_at(),
           cursor_fields: [:charged_at, :id],
           sort_direction: :asc,
           before: encode_cursor(%{charged_at: p9.charged_at, id: p9.id}),
@@ -121,8 +127,7 @@ defmodule PaginatorTest do
       payments: {_p1, p2, p3, _p4, _p5, _p6, _p7, p8, p9, p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_charged_at(),
           cursor_fields: [:charged_at, :id],
           sort_direction: :asc,
           after: encode_cursor(%{charged_at: p3.charged_at, id: p3.id}),
@@ -142,8 +147,7 @@ defmodule PaginatorTest do
       payments: {_p1, p2, p3, _p4, _p5, _p6, _p7, p8, _p9, p10, _p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_charged_at(),
           cursor_fields: [:charged_at, :id],
           sort_direction: :asc,
           after: encode_cursor(%{charged_at: p3.charged_at, id: p3.id}),
@@ -164,7 +168,8 @@ defmodule PaginatorTest do
       payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at(:desc)
+        :desc
+        |> payments_by_charged_at()
         |> Repo.paginate(cursor_fields: [:charged_at, :id], sort_direction: :desc, limit: 50)
 
       assert to_ids(entries) == to_ids([p11, p9, p8, p12, p2, p10, p3, p7, p6, p1, p4, p5])
@@ -175,7 +180,8 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, p9, _p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at(:desc)
+        :desc
+        |> payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
           sort_direction: :desc,
@@ -196,7 +202,8 @@ defmodule PaginatorTest do
       payments: {p1, p2, p3, _p4, _p5, p6, p7, p8, p9, p10, _p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at(:desc)
+        :desc
+        |> payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
           sort_direction: :desc,
@@ -217,7 +224,8 @@ defmodule PaginatorTest do
       payments: {_p1, p2, p3, _p4, _p5, _p6, _p7, p8, p9, p10, _p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at(:desc)
+        :desc
+        |> payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
           sort_direction: :desc,
@@ -239,8 +247,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_charged_at(),
           cursor_fields: [:charged_at, :id],
           sort_direction: :asc,
           before: encode_cursor(%{charged_at: p5.charged_at, id: p5.id}),
@@ -255,8 +262,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_charged_at(),
           cursor_fields: [:charged_at, :id],
           sort_direction: :asc,
           after: encode_cursor(%{charged_at: p11.charged_at, id: p11.id}),
@@ -271,7 +277,8 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at(:desc)
+        :desc
+        |> payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
           sort_direction: :desc,
@@ -287,7 +294,8 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at(:desc)
+        :desc
+        |> payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
           sort_direction: :desc,
@@ -306,13 +314,15 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, p5, p6, p7, p8, _p9, _p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        customer_payments_by_charged_at_and_amount(c1)
+        c1
+        |> customer_payments_by_charged_at_and_amount()
         |> Repo.paginate(cursor_fields: [:charged_at, :amount, :id], limit: 2)
 
       assert to_ids(entries) == to_ids([p5, p6])
 
       %Page{entries: entries, metadata: _metadata} =
-        customer_payments_by_charged_at_and_amount(c1)
+        c1
+        |> customer_payments_by_charged_at_and_amount()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :amount, :id],
           limit: 2,
@@ -327,11 +337,11 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       assert %Page{entries: [], metadata: _metadata} =
-               customer_payments_by_charged_at_and_amount(c1)
+               c1
+               |> customer_payments_by_charged_at_and_amount()
                |> Repo.paginate(
                  cursor_fields: [:amount, :charged_at, :id],
-                 before:
-                   encode_cursor(%{amount: p6.amount, charged_at: p6.charged_at, id: p6.id}),
+                 before: encode_cursor(%{amount: p6.amount, charged_at: p6.charged_at, id: p6.id}),
                  limit: 1
                )
     end
@@ -345,8 +355,7 @@ defmodule PaginatorTest do
                    "Could not find binding `bogus_binding` in query aliases: %{customer: 1, payments: 0}",
                    fn ->
                      %Page{} =
-                       payments_by_customer_name()
-                       |> Repo.paginate(
+                       Repo.paginate(payments_by_customer_name(),
                          cursor_fields: [
                            {{:bogus_binding, :id}, :asc},
                            {{:bogus_binding, :name}, :asc}
@@ -365,8 +374,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [{:id, :asc}, {{:customer, :name}, :asc}],
           before: encode_cursor(%{:id => p11.id, {:customer, :name} => p11.customer.name}),
           limit: 8
@@ -385,8 +393,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [:id, {{:customer, :name}, :asc}],
           before: encode_cursor(%{:id => p11.id, {:customer, :name} => p11.customer.name}),
           limit: 8
@@ -405,8 +412,7 @@ defmodule PaginatorTest do
       payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
           limit: 50
         )
@@ -419,11 +425,9 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
-          before:
-            encode_cursor(%{{:payments, :id} => p11.id, {:customer, :name} => p11.customer.name}),
+          before: encode_cursor(%{{:payments, :id} => p11.id, {:customer, :name} => p11.customer.name}),
           limit: 8
         )
 
@@ -448,11 +452,9 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, p6, p7, p8, p9, p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
-          after:
-            encode_cursor(%{{:payments, :id} => p6.id, {:customer, :name} => p6.customer.name}),
+          after: encode_cursor(%{{:payments, :id} => p6.id, {:customer, :name} => p6.customer.name}),
           limit: 8
         )
 
@@ -473,13 +475,10 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, p6, p7, p8, p9, p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
-          after:
-            encode_cursor(%{{:payments, :id} => p6.id, {:customer, :name} => p6.customer.name}),
-          before:
-            encode_cursor(%{{:payments, :id} => p10.id, {:customer, :name} => p10.customer.name}),
+          after: encode_cursor(%{{:payments, :id} => p6.id, {:customer, :name} => p6.customer.name}),
+          before: encode_cursor(%{{:payments, :id} => p10.id, {:customer, :name} => p10.customer.name}),
           limit: 8
         )
 
@@ -504,7 +503,8 @@ defmodule PaginatorTest do
       payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc, :desc)
+        :desc
+        |> payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
           limit: 50
@@ -518,11 +518,11 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc)
+        :desc
+        |> payments_by_customer_name()
         |> Repo.paginate(
           cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
-          before:
-            encode_cursor(%{{:payments, :id} => p11.id, {:customer, :name} => p11.customer.name}),
+          before: encode_cursor(%{{:payments, :id} => p11.id, {:customer, :name} => p11.customer.name}),
           limit: 8
         )
 
@@ -543,12 +543,12 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc, :desc)
+        :desc
+        |> payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
           sort_direction: :desc,
-          after:
-            encode_cursor(%{{:payments, :id} => p11.id, {:customer, :name} => p11.customer.name}),
+          after: encode_cursor(%{{:payments, :id} => p11.id, {:customer, :name} => p11.customer.name}),
           limit: 8
         )
 
@@ -573,13 +573,12 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, p6, p7, p8, p9, p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc, :desc)
+        :desc
+        |> payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
-          after:
-            encode_cursor(%{{:payments, :id} => p11.id, {:customer, :name} => p11.customer.name}),
-          before:
-            encode_cursor(%{{:payments, :id} => p6.id, {:customer, :name} => p6.customer.name}),
+          after: encode_cursor(%{{:payments, :id} => p11.id, {:customer, :name} => p11.customer.name}),
+          before: encode_cursor(%{{:payments, :id} => p6.id, {:customer, :name} => p6.customer.name}),
           limit: 8
         )
 
@@ -604,11 +603,9 @@ defmodule PaginatorTest do
       payments: {p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
-          before:
-            encode_cursor(%{{:payments, :id} => p1.id, {:customer, :name} => p1.customer.name}),
+          before: encode_cursor(%{{:payments, :id} => p1.id, {:customer, :name} => p1.customer.name}),
           limit: 8
         )
 
@@ -620,11 +617,9 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [{{:payments, :id}, :asc}, {{:customer, :name}, :asc}],
-          after:
-            encode_cursor(%{{:payments, :id} => p12.id, {:customer, :name} => p12.customer.name}),
+          after: encode_cursor(%{{:payments, :id} => p12.id, {:customer, :name} => p12.customer.name}),
           limit: 8
         )
 
@@ -636,11 +631,11 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc, :desc)
+        :desc
+        |> payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
-          before:
-            encode_cursor(%{{:payments, :id} => p12.id, {:customer, :name} => p12.customer.name}),
+          before: encode_cursor(%{{:payments, :id} => p12.id, {:customer, :name} => p12.customer.name}),
           limit: 8
         )
 
@@ -652,11 +647,11 @@ defmodule PaginatorTest do
       payments: {p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_customer_name(:desc, :desc)
+        :desc
+        |> payments_by_customer_name(:desc)
         |> Repo.paginate(
           cursor_fields: [{{:payments, :id}, :desc}, {{:customer, :name}, :desc}],
-          after:
-            encode_cursor(%{{:payments, :id} => p1.id, {:customer, :name} => p1.customer.name}),
+          after: encode_cursor(%{{:payments, :id} => p1.id, {:customer, :name} => p1.customer.name}),
           limit: 8
         )
 
@@ -668,8 +663,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, p5, p6, p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_address_city()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_address_city(),
           cursor_fields: [{{:address, :city}, :asc}, id: :asc],
           before: nil,
           limit: 3,
@@ -687,8 +681,7 @@ defmodule PaginatorTest do
       p7 = Repo.preload(p7, customer: :address)
 
       assert metadata == %Metadata{
-               after:
-                 encode_cursor(%{{:address, :city} => p7.customer.address.city, :id => p7.id}),
+               after: encode_cursor(%{{:address, :city} => p7.customer.address.city, :id => p7.id}),
                before: nil,
                limit: 3
              }
@@ -698,7 +691,8 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, p7, _p8, _p9, _p10, p11, _p12}
     } do
       %Page{entries: entries, metadata: metadata} =
-        payments_by_charged_at(:desc)
+        :desc
+        |> payments_by_charged_at()
         |> Repo.paginate(
           cursor_fields: [:charged_at, :id],
           sort_direction: :desc,
@@ -720,8 +714,7 @@ defmodule PaginatorTest do
     payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
   } do
     %Page{entries: entries, metadata: metadata} =
-      payments_by_customer_name()
-      |> Repo.paginate(cursor_fields: [:id], sort_direction: :asc)
+      Repo.paginate(payments_by_customer_name(), cursor_fields: [:id], sort_direction: :asc)
 
     assert to_ids(entries) == to_ids([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
     assert metadata == %Metadata{after: nil, before: nil, limit: 50}
@@ -731,8 +724,11 @@ defmodule PaginatorTest do
     payments: {p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
   } do
     %Page{entries: entries, metadata: metadata} =
-      payments_by_customer_name()
-      |> Repo.paginate(cursor_fields: [:id], sort_direction: :asc, limit: 0)
+      Repo.paginate(payments_by_customer_name(),
+        cursor_fields: [:id],
+        sort_direction: :asc,
+        limit: 0
+      )
 
     assert to_ids(entries) == to_ids([p1])
     assert metadata == %Metadata{after: encode_cursor(%{id: p1.id}), before: nil, limit: 1}
@@ -743,8 +739,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [:id],
           sort_direction: :asc,
           limit: 5,
@@ -765,8 +760,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [:id],
           sort_direction: :asc,
           limit: 5,
@@ -786,8 +780,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12}
     } do
       %Page{metadata: metadata} =
-        payments_by_customer_name()
-        |> Repo.paginate(
+        Repo.paginate(payments_by_customer_name(),
           cursor_fields: [:id],
           sort_direction: :asc,
           limit: 5,
@@ -808,7 +801,8 @@ defmodule PaginatorTest do
       addresses: {_a1, a2, _a3}
     } do
       %Page{metadata: metadata} =
-        from(a in Address, select: a)
+        [a in Address, select: a]
+        |> from()
         |> Repo.paginate(
           cursor_fields: [:city],
           sort_direction: :asc,
@@ -844,7 +838,8 @@ defmodule PaginatorTest do
       |> Base.url_encode64()
 
     assert_raise(ArgumentError, ~r/^cannot deserialize.+/, fn ->
-      payments_by_amount_and_charged_at(:asc, :desc)
+      :asc
+      |> payments_by_amount_and_charged_at(:desc)
       |> Repo.paginate(
         cursor_fields: [amount: :asc, charged_at: :desc, id: :asc],
         before: payload,
@@ -879,7 +874,8 @@ defmodule PaginatorTest do
     payments: {_p1, _p2, _p3, p4, p5, p6, p7, _p8, _p9, _p10, _p11, _p12}
   } do
     %Page{entries: entries, metadata: metadata} =
-      payments_by_amount_and_charged_at(:asc, :desc)
+      :asc
+      |> payments_by_amount_and_charged_at(:desc)
       |> Repo.paginate(
         cursor_fields: [amount: :asc, charged_at: :desc, id: :asc],
         before: encode_cursor(%{amount: p7.amount, charged_at: p7.charged_at, id: p7.id}),
@@ -899,7 +895,8 @@ defmodule PaginatorTest do
     payments: {_p1, _p2, _p3, p4, p5, _p6, p7, p8, _p9, _p10, _p11, _p12}
   } do
     %Page{entries: entries, metadata: metadata} =
-      payments_by_amount_and_charged_at(:asc, :desc)
+      :asc
+      |> payments_by_amount_and_charged_at(:desc)
       |> Repo.paginate(
         cursor_fields: [amount: :asc, charged_at: :desc, id: :asc],
         after: encode_cursor(%{amount: p4.amount, charged_at: p4.charged_at, id: p4.id}),
@@ -919,7 +916,8 @@ defmodule PaginatorTest do
     payments: {_p1, _p2, _p3, p4, p5, p6, p7, p8, _p9, _p10, _p11, _p12}
   } do
     %Page{entries: entries, metadata: metadata} =
-      payments_by_amount_and_charged_at(:desc, :asc)
+      :desc
+      |> payments_by_amount_and_charged_at(:asc)
       |> Repo.paginate(
         cursor_fields: [amount: :desc, charged_at: :asc, id: :asc],
         after: encode_cursor(%{amount: p8.amount, charged_at: p8.charged_at, id: p8.id}),
@@ -1129,14 +1127,11 @@ defmodule PaginatorTest do
     p12 = insert(:payment, customer: c3, charged_at: days_ago(5))
 
     {:ok,
-     customers: {c1, c2, c3},
-     addresses: {a1, a2, a3},
-     payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}}
+     customers: {c1, c2, c3}, addresses: {a1, a2, a3}, payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}}
   end
 
   defp create_customers_with_similar_names(base_customer_name) do
-    1..10
-    |> Enum.map(fn i ->
+    Enum.map(1..10, fn i ->
       {:ok, %{rows: [[rank_value]]}} =
         Repo.query(
           "SELECT ts_rank(setweight(to_tsvector('simple', $1), 'A'), plainto_tsquery('simple', $2))",
@@ -1255,7 +1250,7 @@ defmodule PaginatorTest do
   end
 
   defp days_ago(days) do
-    DT.add!(DateTime.utc_now(), -(days * 86400))
+    DT.add!(DateTime.utc_now(), -(days * 86_400))
   end
 
   defp paginate_as_list(query, opts, mapf \\ &to_ids(&1.entries)) do
@@ -1285,7 +1280,8 @@ defmodule PaginatorTest do
         [nil]
 
       before_cursor ->
-        Repo.paginate(query, Keyword.put(opts, :before, before_cursor))
+        query
+        |> Repo.paginate(Keyword.put(opts, :before, before_cursor))
         |> Map.fetch!(:entries)
         |> to_ids
     end)

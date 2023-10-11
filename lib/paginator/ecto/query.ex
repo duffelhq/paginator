@@ -8,6 +8,7 @@ defmodule Paginator.Ecto.Query do
 
   def paginate(queryable, config \\ [])
 
+  # credo:disable-for-next-line Credo.Check.Consistency.ParameterPatternMatching
   def paginate(queryable, %Config{} = config) do
     queryable
     |> maybe_where(config)
@@ -86,8 +87,7 @@ defmodule Paginator.Ecto.Query do
          before: nil,
          cursor_fields: cursor_fields
        }) do
-    query
-    |> filter_values(cursor_fields, after_values, :after)
+    filter_values(query, cursor_fields, after_values, :after)
   end
 
   defp maybe_where(query, %Config{
@@ -121,9 +121,11 @@ defmodule Paginator.Ecto.Query do
         {position, column}
 
       _ ->
+        inspected_alias = inspect(query.aliases)
+
         raise(
           ArgumentError,
-          "Could not find binding `#{binding_name}` in query aliases: #{inspect(query.aliases)}"
+          "Could not find binding `#{binding_name}` in query aliases: #{inspected_alias}"
         )
     end
   end

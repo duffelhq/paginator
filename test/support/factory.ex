@@ -1,7 +1,7 @@
 defmodule Paginator.Factory do
   use ExMachina.Ecto, repo: Paginator.Repo
 
-  alias Paginator.{Customer, Address, Payment}
+  alias Paginator.{Address, Customer, Payment}
 
   def customer_factory do
     %Customer{

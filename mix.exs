@@ -38,14 +38,13 @@ defmodule Paginator.Mixfile do
   defp deps do
     [
       {:calendar, "~> 1.0.0", only: :test},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.1", only: [:dev], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.0"},
-      {:excoveralls, "~> 0.17.1", only: :test},
-      {:ex_doc, "~> 0.28", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.18", only: :test},
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false},
       {:ex_machina, "~> 2.1", only: :test},
-      {:inch_ex, "~> 2.0", only: [:dev, :test]},
       {:postgrex, "~> 0.13", optional: true},
       {:plug_crypto, "~> 1.2.0"}
     ]
@@ -59,7 +58,8 @@ defmodule Paginator.Mixfile do
       links: %{
         "Changelog" => "https://github.com/stordco/paginator/releases",
         "GitHub" => @source_url
-      }
+      },
+      organization: "stord"
     ]
   end
 

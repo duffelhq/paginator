@@ -16,6 +16,6 @@ defmodule Paginator.Customer do
   end
 
   def active(query) do
-    query |> where([c], c.active == true)
+    where(query, [c], c.active == true)
   end
 end

@@ -1,4 +1,6 @@
 defmodule Paginator.Ecto.Query.DescNullsLast do
+  @moduledoc false
+
   @behaviour Paginator.Ecto.Query.DynamicFilterBuilder
 
   import Ecto.Query

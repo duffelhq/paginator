@@ -5,6 +5,20 @@ defmodule Paginator.Config do
 
   @type t :: %__MODULE__{}
 
+  @default_total_count_primary_key_field :id
+  @default_limit 50
+  @minimum_limit 1
+  @maximum_limit 500
+  @default_total_count_limit 10_000
+  @order_directions [
+    :asc,
+    :asc_nulls_last,
+    :asc_nulls_first,
+    :desc,
+    :desc_nulls_first,
+    :desc_nulls_last
+  ]
+
   defstruct [
     :after,
     :after_values,
@@ -24,39 +38,23 @@ defmodule Paginator.Config do
     defexception [:message]
   end
 
-  @default_total_count_primary_key_field :id
-  @default_limit 50
-  @minimum_limit 1
-  @maximum_limit 500
-  @default_total_count_limit 10_000
-  @order_directions [
-    :asc,
-    :asc_nulls_last,
-    :asc_nulls_first,
-    :desc,
-    :desc_nulls_first,
-    :desc_nulls_last
-  ]
-
   def new(opts \\ []) do
-    %__MODULE__{
+    convert_deprecated_config(%__MODULE__{
       after: opts[:after],
       after_values: Cursor.decode(opts[:after]),
       before: opts[:before],
       before_values: Cursor.decode(opts[:before]),
       cursor_fields: opts[:cursor_fields],
-      fetch_cursor_value_fun:
-        opts[:fetch_cursor_value_fun] || (&Paginator.default_fetch_cursor_value/2),
+      fetch_cursor_value_fun: opts[:fetch_cursor_value_fun] || (&Paginator.default_fetch_cursor_value/2),
       include_total_count: opts[:include_total_count] || false,
-      total_count_primary_key_field:
-        opts[:total_count_primary_key_field] || @default_total_count_primary_key_field,
+      total_count_primary_key_field: opts[:total_count_primary_key_field] || @default_total_count_primary_key_field,
       limit: limit(opts),
       sort_direction: opts[:sort_direction],
       total_count_limit: opts[:total_count_limit] || @default_total_count_limit
-    }
-    |> convert_deprecated_config()
+    })
   end
 
+  # credo:disable-for-next-line Credo.Check.Consistency.ParameterPatternMatching
   def validate!(%__MODULE__{} = config) do
     unless config.cursor_fields do
       raise(Paginator.Config.ArgumentError, message: "expected `:cursor_fields` to be set")
@@ -75,7 +73,7 @@ defmodule Paginator.Config do
     end
   end
 
-  defp cursor_values_match_cursor_fields?(nil = _cursor_values, _cursor_fields), do: true
+  defp cursor_values_match_cursor_fields?(nil, _cursor_fields), do: true
 
   defp cursor_values_match_cursor_fields?(cursor_values, _cursor_fields)
        when is_list(cursor_values) do
@@ -115,8 +113,10 @@ defmodule Paginator.Config do
   end
 
   defp limit(opts) do
-    max(opts[:limit] || @default_limit, @minimum_limit)
-    |> min(opts[:maximum_limit] || @maximum_limit)
+    min(
+      max(opts[:limit] || @default_limit, @minimum_limit),
+      opts[:maximum_limit] || @maximum_limit
+    )
   end
 
   defp convert_deprecated_config(config) do
@@ -130,8 +130,7 @@ defmodule Paginator.Config do
       %__MODULE__{sort_direction: direction} ->
         %{
           config
-          | cursor_fields:
-              build_cursor_fields_from_sort_direction(config.cursor_fields, direction),
+          | cursor_fields: build_cursor_fields_from_sort_direction(config.cursor_fields, direction),
             sort_direction: nil
         }
     end

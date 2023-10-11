@@ -1,13 +1,5 @@
 # Paginator
 
-[![Build status](https://github.com/duffelhq/paginator/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/duffelhq/paginator/actions?query=branch%3Amain)
-[![Inline docs](http://inch-ci.org/github/duffelhq/paginator.svg)](http://inch-ci.org/github/duffelhq/paginator)
-[![Module Version](https://img.shields.io/hexpm/v/paginator.svg)](https://hex.pm/packages/paginator)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/paginator/)
-[![Total Download](https://img.shields.io/hexpm/dt/paginator.svg)](https://hex.pm/packages/paginator)
-[![License](https://img.shields.io/hexpm/l/paginator.svg)](https://github.com/duffelhq/paginator/blob/master/LICENSE)
-[![Last Updated](https://img.shields.io/github/last-commit/duffelhq/paginator.svg)](https://github.com/duffelhq/paginator/commits/master)
-
 [Cursor based pagination](http://use-the-index-luke.com/no-offset) for Elixir [Ecto](https://github.com/elixir-ecto/ecto).
 
 ## Why?
@@ -66,13 +58,15 @@ page = MyApp.Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 50)
 
 Add `:paginator` to your list of dependencies in `mix.exs`:
 
+<!-- {x-release-please-start-version} -->
 ```elixir
 def deps do
   [
-    {:paginator, "~> 1.2.0"}
+    {:paginator, "~> 1.2.0", organization: "stord"}
   ]
 end
 ```
+<!-- {x-release-please-end} -->
 
 ## Usage
 
@@ -216,7 +210,7 @@ for you automatically based on the fields specified in `:cursor_fields`.
 ## Documentation
 
 Documentation is written into the library, you will find it in the source code, accessible from `iex` and of course, it
-all gets published to [hexdocs](http://hexdocs.pm/paginator).
+all gets published to [hexdocs](https://stord.hexdocs.pm/paginator).
 
 ## Contributing
 
@@ -225,7 +219,7 @@ all gets published to [hexdocs](http://hexdocs.pm/paginator).
 Clone the repo and fetch its dependencies:
 
 ```
-$ git clone https://github.com/duffelhq/paginator.git
+$ git clone https://github.com/stordco/paginator.git
 $ cd paginator
 $ mix deps.get
 $ mix test

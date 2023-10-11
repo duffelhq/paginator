@@ -9,8 +9,7 @@ defmodule Paginator.DataCase do
       import Ecto.Query
       import Paginator.Factory
 
-      alias Paginator.{Page, Page.Metadata}
-      alias Paginator.{Customer, Address, Payment}
+      alias Paginator.{Address, Customer, Page, Page.Metadata, Payment}
     end
   end
 

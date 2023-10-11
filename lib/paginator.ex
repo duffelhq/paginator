@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Refactor.NegatedIsNil
 defmodule Paginator do
   @moduledoc """
   Defines a paginator.
@@ -49,18 +50,6 @@ defmodule Paginator do
   import Ecto.Query
 
   alias Paginator.{Config, Cursor, Ecto.Query, Page, Page.Metadata}
-
-  defmacro __using__(opts) do
-    quote do
-      @defaults unquote(opts)
-
-      def paginate(queryable, opts \\ [], repo_opts \\ []) do
-        opts = Keyword.merge(@defaults, opts)
-
-        Paginator.paginate(queryable, opts, __MODULE__, repo_opts)
-      end
-    end
-  end
 
   @doc """
   Fetches all the results matching the query within the cursors.
@@ -170,6 +159,18 @@ defmodule Paginator do
   @callback paginate(queryable :: Ecto.Query.t(), opts :: Keyword.t(), repo_opts :: Keyword.t()) ::
               Paginator.Page.t()
 
+  defmacro __using__(opts) do
+    quote do
+      @defaults unquote(opts)
+
+      def paginate(queryable, opts \\ [], repo_opts \\ []) do
+        opts = Keyword.merge(@defaults, opts)
+
+        Paginator.paginate(queryable, opts, __MODULE__, repo_opts)
+      end
+    end
+  end
+
   @doc false
   def paginate(queryable, opts, repo, repo_opts) do
     config = Config.new(opts)
@@ -245,7 +246,7 @@ defmodule Paginator do
   def default_fetch_cursor_value(schema, {binding, field})
       when is_atom(binding) and is_atom(field) do
     case Map.get(schema, field) do
-      nil -> Map.get(schema, binding) |> Map.get(field)
+      nil -> schema |> Map.get(binding) |> Map.get(field)
       value -> value
     end
   end

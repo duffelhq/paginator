@@ -15,10 +15,10 @@ defmodule Paginator.Payment do
   end
 
   def successful(query) do
-    query |> where([p], p.status == "success")
+    where(query, [p], p.status == "success")
   end
 
   def failed(query) do
-    query |> where([p], p.status == "failed")
+    where(query, [p], p.status == "failed")
   end
 end
