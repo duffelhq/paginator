@@ -42,6 +42,7 @@ defmodule Paginator.Mixfile do
       {:dialyxir, "~> 1.1", only: [:dev], runtime: false},
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.0"},
+      {:excoveralls, "~> 0.17.1", only: :test},
       {:ex_doc, "~> 0.28", only: :dev, runtime: false},
       {:ex_machina, "~> 2.1", only: :test},
       {:inch_ex, "~> 2.0", only: [:dev, :test]},
