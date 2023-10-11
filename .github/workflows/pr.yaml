@@ -1,0 +1,33 @@
+# This file is synced with stordco/common-config-elixir. Any changes will be overwritten.
+
+name: PR
+
+on:
+  merge_group:
+  pull_request:
+    types:
+      - edited
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  Title:
+    if: ${{ github.event_name == 'pull_request' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check
+        uses: stordco/actions-pr-title@v1.0.0
+        with:
+          regex: '^(feat!|fix!|fix|feat|chore|(fix|feat|chore)\(\w.*\)):\s(\[\w{1,8}-\d{1,8}\]|.*).*'
+          hint: |
+            Your PR title does not match the Stord common convention. Please rename your PR to match one of the following formats:
+
+            chore: a small insignificant change
+            fix: [JIRA-1234] fix an existing feature
+            feat: [JIRA-1234] a new feature to release
+            feat!: a breaking change
+
+            Note: Adding ! (i.e. `feat!:`) represents a breaking change and will result in a SemVer major release.
