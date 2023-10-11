@@ -1,0 +1,52 @@
+# This file is synced with stordco/common-config-elixir. Any changes will be overwritten.
+
+name: Common Config Elixir
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/common-config-elixir.yaml
+  repository_dispatch:
+    types:
+      - common-config-elixir
+  schedule:
+    - cron: "8 17 2 * *"
+  workflow_dispatch: {}
+
+jobs:
+  Sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Setup Elixir
+        uses: stordco/actions-elixir/setup@v1
+        with:
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          hex-token: ${{ secrets.HEX_API_KEY }}
+          elixir-version: "1.15"
+          otp-version: "26.0"
+
+      - name: Sync
+        uses: stordco/actions-sync@v1
+        with:
+          commit-message: "chore: sync files with stordco/common-config-elixir"
+          pr-enabled: true
+          pr-labels: common-config
+          pr-title: "chore: sync files with stordco/common-config-elixir"
+          pr-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          sync-auth: stord-engineering-account:${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          sync-branch: latest
+          sync-repository: github.com/stordco/common-config-elixir.git
