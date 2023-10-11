@@ -1,0 +1,51 @@
+# This file is synced with stordco/common-config-elixir. Any changes will be overwritten.
+
+name: Staging
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: Staging
+
+jobs:
+  Documentation:
+    environment:
+      name: Documentation
+      url: https://paginator.stord.engineering
+
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: stordco/actions-elixir/setup@v1
+        with:
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          hex-token: ${{ secrets.HEX_API_KEY }}
+          oban-fingerprint: ${{ secrets.OBAN_KEY_FINGERPRINT }}
+          oban-token: ${{ secrets.OBAN_LICENSE_KEY }}
+
+      - name: Build
+        run: mix docs
+
+      - name: Set CNAME
+        run: echo "paginator.stord.engineering" > ./doc/CNAME
+
+      - name: Upload Artifacts
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./doc
+
+      - name: Deploy
+        uses: actions/deploy-pages@v2
