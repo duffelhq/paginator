@@ -9,7 +9,7 @@ defmodule Paginator.Mixfile do
       app: :paginator,
       name: "Paginator",
       version: @version,
-      elixir: "~> 1.5",
+      elixir: "~> 1.11",
       elixirc_options: [warnings_as_errors: System.get_env("CI") == "true"],
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
@@ -40,7 +40,7 @@ defmodule Paginator.Mixfile do
       {:ex_machina, "~> 2.1", only: :test},
       {:inch_ex, "~> 2.0", only: [:dev, :test]},
       {:postgrex, "~> 0.13", optional: true},
-      {:plug_crypto, "~> 1.2.0"}
+      {:plug_crypto, "~> 2.0"}
     ]
   end
 

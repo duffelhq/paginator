@@ -36,32 +36,30 @@ jobs:
         env:
           POSTGRES_DB: paginator_test
           POSTGRES_PASSWORD: postgres
-
     strategy:
       matrix:
         elixir:
-        - "1.7"
-        - "1.8"
-        - "1.9"
-        - "1.10"
-        - "1.11"
+        - "1.12"
+        - "1.13.4"
+        - "1.14.5"
+        - "1.15"
+        - "1.16"
         otp:
-        - "20.0"
-        - "21.0"
-        - "22.0.2"
         - "23.0"
+        - "24.0"
+        - "25.0"
+        - "26.0"
         exclude:
-        - elixir: "1.10"
-          otp: "20.0"
-        - elixir: "1.11"
-          otp: "20.0"
-        - elixir: "1.9"
+        - elixir: "1.12"
+          otp: "25.0"
+        - elixir: "1.12"
+          otp: "26.0"
+        - elixir: "1.13"
+          otp: "26.0"
+        - elixir: "1.15"
           otp: "23.0"
-        - elixir: "1.7"
+        - elixir: "1.16"
           otp: "23.0"
-        - elixir: "1.8"
-          otp: "23.0"
-
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -130,16 +128,12 @@ jobs:
 
     - name: Install package dependencies
       run: mix deps.get
-
     - name: Remove compiled application files
       run: mix clean
-
     - name: Compile dependencies
       run: mix compile
-
     - name: Check documentation quality locally
       run: mix inch
-
     - name: Report documentation quality
       if: github.event_name == 'push'
       run: mix inch.report
