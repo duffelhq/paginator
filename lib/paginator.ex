@@ -202,10 +202,10 @@ defmodule Paginator do
   ### Example
 
       iex> Paginator.cursor_for_record(%Paginator.Customer{id: 1}, [:id])
-      "g3QAAAABdwJpZGEB"
+      "g3QAAAABZAACaWRhAQ=="
 
       iex> Paginator.cursor_for_record(%Paginator.Customer{id: 1, name: "Alice"}, [id: :asc, name: :desc])
-      "g3QAAAACdwJpZGEBdwRuYW1lbQAAAAVBbGljZQ=="
+      "g3QAAAACZAACaWRhAWQABG5hbWVtAAAABUFsaWNl"
   """
   @spec cursor_for_record(
           any(),
