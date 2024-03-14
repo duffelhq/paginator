@@ -1,12 +1,4 @@
-# Paginator
-
-[![Build status](https://github.com/duffelhq/paginator/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/duffelhq/paginator/actions?query=branch%3Amain)
-[![Inline docs](http://inch-ci.org/github/duffelhq/paginator.svg)](http://inch-ci.org/github/duffelhq/paginator)
-[![Module Version](https://img.shields.io/hexpm/v/paginator.svg)](https://hex.pm/packages/paginator)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/paginator/)
-[![Total Download](https://img.shields.io/hexpm/dt/paginator.svg)](https://hex.pm/packages/paginator)
-[![License](https://img.shields.io/hexpm/l/paginator.svg)](https://github.com/duffelhq/paginator/blob/master/LICENSE)
-[![Last Updated](https://img.shields.io/github/last-commit/duffelhq/paginator.svg)](https://github.com/duffelhq/paginator/commits/master)
+# Paginator2
 
 [Cursor based pagination](http://use-the-index-luke.com/no-offset) for Elixir [Ecto](https://github.com/elixir-ecto/ecto).
 
@@ -64,12 +56,12 @@ page = MyApp.Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 50)
 
 ## Installation
 
-Add `:paginator` to your list of dependencies in `mix.exs`:
+Add `:paginator2` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:paginator, "~> 1.2.0"}
+    {:paginator2, "~> 1.2.0"}
   ]
 end
 ```
@@ -188,7 +180,7 @@ IO.puts "total count: #{metadata.total_count}"
 ## Security Considerations
 
 `Repo.paginate/4` will throw an `ArgumentError` should it detect an executable term in the cursor parameters passed to it (`before`, `after`).
-This is done to protect you from potential side-effects of malicious user input, see [paginator_test.exs](https://github.com/duffelhq/paginator/blob/master/test/paginator_test.exs#L820).
+This is done to protect you from potential side-effects of malicious user input.
 
 ## Indexes
 
@@ -216,7 +208,7 @@ for you automatically based on the fields specified in `:cursor_fields`.
 ## Documentation
 
 Documentation is written into the library, you will find it in the source code, accessible from `iex` and of course, it
-all gets published to [hexdocs](http://hexdocs.pm/paginator).
+all gets published to [hexdocs](http://hexdocs.pm/paginator2).
 
 ## Contributing
 
@@ -225,8 +217,8 @@ all gets published to [hexdocs](http://hexdocs.pm/paginator).
 Clone the repo and fetch its dependencies:
 
 ```
-$ git clone https://github.com/duffelhq/paginator.git
-$ cd paginator
+$ git clone https://github.com/nTraum/paginator2.git
+$ cd paginator2
 $ mix deps.get
 $ mix test
 ```

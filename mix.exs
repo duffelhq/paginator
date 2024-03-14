@@ -1,13 +1,13 @@
 defmodule Paginator.Mixfile do
   use Mix.Project
 
-  @source_url "https://github.com/duffelhq/paginator"
-  @version "1.2.0"
+  @source_url "https://github.com/nTraum/paginator2"
+  @version "1.3.0-rc1"
 
   def project do
     [
       app: :paginator,
-      name: "Paginator",
+      name: "paginator2",
       version: @version,
       elixir: "~> 1.12",
       elixirc_options: [warnings_as_errors: System.get_env("CI") == "true"],
@@ -36,7 +36,7 @@ defmodule Paginator.Mixfile do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ecto, ">= 3.9.5 and < 4.0.0"},
       {:ecto_sql, "~> 3.0"},
-      {:ex_doc, "~> 0.18", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:ex_machina, "~> 2.1", only: :test},
       {:inch_ex, "~> 2.0", only: [:dev, :test]},
       {:postgrex, "~> 0.13", optional: true},
@@ -46,11 +46,12 @@ defmodule Paginator.Mixfile do
 
   defp package do
     [
+      name: "paginator2",
       description: "Cursor based pagination for Elixir Ecto.",
-      maintainers: ["Steve Domin"],
+      maintainers: ["Philipp Preß"],
       licenses: ["MIT"],
       links: %{
-        "Changelog" => "https://hexdocs.pm/paginator/changelog.html",
+        "Changelog" => "https://hexdocs.pm/paginator2/changelog.html",
         "GitHub" => @source_url
       }
     ]
@@ -64,7 +65,7 @@ defmodule Paginator.Mixfile do
         "README.md": [title: "Overview"]
       ],
       main: "readme",
-      canonical: "http://hexdocs.pm/paginator",
+      canonical: "http://hexdocs.pm/paginator2",
       source_url: @source_url,
       source_ref: "v#{@version}",
       formatters: ["html"]
