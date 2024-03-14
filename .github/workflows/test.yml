@@ -36,7 +36,7 @@ jobs:
           otp: "25.0"
         - elixir: "1.12"
           otp: "26.0"
-        - elixir: "1.13"
+        - elixir: "1.13.4"
           otp: "26.0"
         - elixir: "1.15"
           otp: "23.0"
