@@ -7,22 +7,6 @@ on:
       - main
 
 jobs:
-  check_duplicate_runs:
-    name: Check for duplicate runs
-    continue-on-error: true
-    runs-on: ubuntu-20.04
-    outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
-    steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@v3.4.0
-        with:
-          concurrent_skipping: always
-          cancel_others: true
-          skip_after_successful_duplicate: true
-          paths_ignore: '["**/README.md", "**/CHANGELOG.md", "**/LICENSE.txt"]'
-          do_not_skip: '["pull_request"]'
-
   dialyzer:
     name: Static code analysis
     runs-on: ubuntu-20.04
