@@ -19,6 +19,7 @@ jobs:
           POSTGRES_DB: paginator_test
           POSTGRES_PASSWORD: postgres
     strategy:
+      fail-fast: false
       matrix:
         elixir:
         - "1.12"
