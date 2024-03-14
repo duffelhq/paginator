@@ -33,7 +33,7 @@ defmodule Paginator.Mixfile do
   defp deps do
     [
       {:calendar, "~> 1.0.0", only: :test},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ecto, ">= 3.9.5 and < 4.0.0"},
       {:ecto_sql, "~> 3.0"},
       {:ex_doc, "~> 0.18", only: :dev, runtime: false},
