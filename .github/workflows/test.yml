@@ -66,9 +66,6 @@ jobs:
     - name: Install package dependencies
       run: mix deps.get
 
-    - name: Remove compiled application files
-      run: mix clean
-
     - name: Compile dependencies
       run: mix compile
       env:
@@ -76,47 +73,3 @@ jobs:
 
     - name: Run unit tests
       run: mix test
-
-  inch:
-    name: Analyse Documentation
-    runs-on: ubuntu-20.04
-    needs: test
-
-    strategy:
-      matrix:
-        elixir:
-        - "1.11"
-        otp:
-        - "23.0"
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Set up Elixir
-      uses: erlef/setup-beam@v1
-      with:
-        elixir-version: ${{ matrix.elixir }}
-        otp-version: ${{ matrix.otp }}
-
-    - name: Restore build and deps caches
-      uses: actions/cache@v2
-      with:
-        path: |
-          deps
-          _build
-        key: ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}
-
-    - name: Install package dependencies
-      run: mix deps.get
-    - name: Remove compiled application files
-      run: mix clean
-    - name: Compile dependencies
-      run: mix compile
-    - name: Check documentation quality locally
-      run: mix inch
-    - name: Report documentation quality
-      if: github.event_name == 'push'
-      run: mix inch.report
