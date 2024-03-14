@@ -10,6 +10,9 @@ jobs:
   test:
     name: Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}
     runs-on: ubuntu-20.04
+    env:
+      FORCE_COLOR: "1"
+      MIX_ENV: test
     services:
       postgres:
         image: postgres
@@ -68,8 +71,6 @@ jobs:
 
     - name: Compile dependencies
       run: mix compile
-      env:
-        MIX_ENV: test
 
     - name: Run unit tests
       run: mix test
