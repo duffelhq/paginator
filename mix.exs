@@ -9,7 +9,7 @@ defmodule Paginator.Mixfile do
       app: :paginator,
       name: "Paginator",
       version: @version,
-      elixir: "~> 1.11",
+      elixir: "~> 1.12",
       elixirc_options: [warnings_as_errors: System.get_env("CI") == "true"],
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
