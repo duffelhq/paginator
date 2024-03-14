@@ -8,4 +8,4 @@ config :paginator, Paginator.Repo,
   password: "postgres",
   database: "paginator_test"
 
-config :logger, :console, level: :warn
+config :logger, :console, level: :warning

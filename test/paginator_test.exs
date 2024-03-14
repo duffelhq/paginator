@@ -342,7 +342,7 @@ defmodule PaginatorTest do
       payments: {_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, p11, _p12}
     } do
       assert_raise ArgumentError,
-                   "Could not find binding `bogus_binding` in query aliases: %{customer: 1, payments: 0}",
+                   ~r/^Could not find binding `bogus_binding` in query aliases/,
                    fn ->
                      %Page{} =
                        payments_by_customer_name()

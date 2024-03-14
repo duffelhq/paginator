@@ -24,3 +24,7 @@ paginator-*.tar
 
 # Temporary files for e.g. tests.
 /tmp
+
+# Ignore Dialyzer lookup tables
+/priv/plts/*.plt
+/priv/plts/*.plt.hash
