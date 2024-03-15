@@ -4,8 +4,8 @@
 [![Module Version](https://img.shields.io/hexpm/v/paginator.svg)](https://hex.pm/packages/paginator)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/paginator/)
 [![Total Download](https://img.shields.io/hexpm/dt/paginator.svg)](https://hex.pm/packages/paginator)
-[![License](https://img.shields.io/hexpm/l/paginator.svg)](https://github.com/duffelhq/paginator/blob/master/LICENSE.txt)
-[![Last Updated](https://img.shields.io/github/last-commit/duffelhq/paginator.svg)](https://github.com/duffelhq/paginator/commits/master)
+[![License](https://img.shields.io/hexpm/l/paginator.svg)](https://github.com/duffelhq/paginator/blob/main/LICENSE.md)
+[![Last Updated](https://img.shields.io/github/last-commit/duffelhq/paginator.svg)](https://github.com/duffelhq/paginator/commits/main)
 
 [Cursor based pagination](http://use-the-index-luke.com/no-offset) for Elixir [Ecto](https://github.com/elixir-ecto/ecto).
 
@@ -187,7 +187,7 @@ IO.puts "total count: #{metadata.total_count}"
 ## Security Considerations
 
 `Repo.paginate/4` will throw an `ArgumentError` should it detect an executable term in the cursor parameters passed to it (`before`, `after`).
-This is done to protect you from potential side-effects of malicious user input, see [paginator_test.exs](https://github.com/duffelhq/paginator/blob/master/test/paginator_test.exs#L830).
+This is done to protect you from potential side-effects of malicious user input, see [paginator_test.exs](https://github.com/duffelhq/paginator/blob/main/test/paginator_test.exs#L830).
 
 ## Indexes
 
