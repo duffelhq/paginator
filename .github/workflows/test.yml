@@ -73,7 +73,7 @@ jobs:
         otp-version: ${{ matrix.otp }}
 
     - name: Restore build and deps caches
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           deps
@@ -119,7 +119,7 @@ jobs:
         otp-version: ${{ matrix.otp }}
 
     - name: Restore build and deps caches
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           deps
