@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :paginator, ecto_repos: [Paginator.Repo]
 
