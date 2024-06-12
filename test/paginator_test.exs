@@ -26,6 +26,40 @@ defmodule PaginatorTest do
     assert page.metadata.after == nil
   end
 
+  test "paginates forward with page_booleans", %{
+    payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
+  } do
+    opts = [cursor_fields: [:charged_at, :id], sort_direction: :asc, limit: 4, page_booleans: true]
+
+    page = payments_by_charged_at() |> Repo.paginate(opts)
+    assert to_ids(page.entries) == to_ids([p5, p4, p1, p6])
+    assert page.metadata.before == nil
+    assert page.metadata.after == encode_cursor(%{charged_at: p6.charged_at, id: p6.id})
+    assert page.metadata.has_previous_page == false
+    assert page.metadata.has_next_page == true
+
+    page = payments_by_charged_at() |> Repo.paginate(opts ++ [after: page.metadata.after])
+    assert to_ids(page.entries) == to_ids([p7, p3, p10, p2])
+    assert page.metadata.before == encode_cursor(%{charged_at: p7.charged_at, id: p7.id})
+    assert page.metadata.after == encode_cursor(%{charged_at: p2.charged_at, id: p2.id})
+    assert page.metadata.has_next_page == true
+    assert page.metadata.has_previous_page == true
+
+    page = payments_by_charged_at() |> Repo.paginate(opts ++ [after: page.metadata.after])
+    assert to_ids(page.entries) == to_ids([p12, p8, p9, p11])
+    assert page.metadata.before == encode_cursor(%{charged_at: p12.charged_at, id: p12.id})
+    assert page.metadata.after == encode_cursor(%{charged_at: p11.charged_at, id: p11.id})
+    assert page.metadata.has_next_page == false
+    assert page.metadata.has_previous_page == true
+
+    page = payments_by_charged_at() |> Repo.paginate(opts ++ [after: page.metadata.after])
+    assert to_ids(page.entries) == to_ids([])
+    assert page.metadata.before == nil
+    assert page.metadata.after == encode_cursor(%{charged_at: p11.charged_at, id: p11.id})
+    assert page.metadata.has_next_page == false
+    assert page.metadata.has_previous_page == false
+  end
+
   test "paginates forward with legacy cursor", %{
     payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
   } do
@@ -74,6 +108,43 @@ defmodule PaginatorTest do
     assert page.metadata.before == nil
   end
 
+  test "paginates backward with page_booleans", %{
+    payments: {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12}
+  } do
+    opts = [cursor_fields: [:charged_at, :id], sort_direction: :asc, limit: 4, page_booleans: true]
+
+    page =
+      payments_by_charged_at()
+      |> Repo.paginate(opts ++ [before: encode_cursor(%{charged_at: p11.charged_at, id: p11.id})])
+
+    assert to_ids(page.entries) == to_ids([p2, p12, p8, p9])
+    assert page.metadata.before == encode_cursor(%{charged_at: p2.charged_at, id: p2.id})
+    assert page.metadata.after == encode_cursor(%{charged_at: p9.charged_at, id: p9.id})
+    assert page.metadata.has_next_page == true
+    assert page.metadata.has_previous_page == true
+
+    page = payments_by_charged_at() |> Repo.paginate(opts ++ [before: page.metadata.before])
+    assert to_ids(page.entries) == to_ids([p6, p7, p3, p10])
+    assert page.metadata.before == encode_cursor(%{charged_at: p6.charged_at, id: p6.id})
+    assert page.metadata.after == encode_cursor(%{charged_at: p10.charged_at, id: p10.id})
+    assert page.metadata.has_next_page == true
+    assert page.metadata.has_previous_page == true
+
+    page = payments_by_charged_at() |> Repo.paginate(opts ++ [before: page.metadata.before])
+    assert to_ids(page.entries) == to_ids([p5, p4, p1])
+    assert page.metadata.before == encode_cursor(%{charged_at: p5.charged_at, id: p5.id})
+    assert page.metadata.after == encode_cursor(%{charged_at: p1.charged_at, id: p1.id})
+    assert page.metadata.has_next_page == true
+    assert page.metadata.has_previous_page == false
+
+    page = payments_by_charged_at() |> Repo.paginate(opts ++ [before: page.metadata.before])
+    assert to_ids(page.entries) == to_ids([])
+    assert page.metadata.before == encode_cursor(%{charged_at: p5.charged_at, id: p5.id})
+    assert page.metadata.after == nil
+    assert page.metadata.has_next_page == false
+    assert page.metadata.has_previous_page == false
+  end
+
   test "returns an empty page when there are no results" do
     page =
       payments_by_status("failed")
@@ -82,6 +153,18 @@ defmodule PaginatorTest do
     assert page.entries == []
     assert page.metadata.after == nil
     assert page.metadata.before == nil
+  end
+
+  test "returns an empty page when there are no results with page_booleans" do
+    page =
+      payments_by_status("failed")
+      |> Repo.paginate(cursor_fields: [:charged_at, :id], limit: 10, page_booleans: true)
+
+    assert page.entries == []
+    assert page.metadata.after == nil
+    assert page.metadata.before == nil
+    assert page.metadata.has_next_page == false
+    assert page.metadata.has_previous_page == false
   end
 
   describe "paginate a collection of payments, sorting by charged_at" do
