@@ -2,7 +2,7 @@ defmodule Paginator.Mixfile do
   use Mix.Project
 
   @source_url "https://github.com/duffelhq/paginator"
-  @version "1.2.0"
+  @version "1.2.0-fork-hsnyildiz"
 
   def project do
     [
@@ -34,13 +34,14 @@ defmodule Paginator.Mixfile do
     [
       {:calendar, "~> 1.0.0", only: :test},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:ecto, "~> 3.0"},
-      {:ecto_sql, "~> 3.0"},
-      {:ex_doc, "~> 0.18", only: :dev, runtime: false},
-      {:ex_machina, "~> 2.1", only: :test},
+      {:ecto, "~> 3.12"},
+      {:ecto_sql, "~> 3.12"},
+      {:ex_doc, "~> 0.38.1", only: :dev, runtime: false},
+      {:ex_machina, "~> 2.8", only: :test},
       {:inch_ex, "~> 2.0", only: [:dev, :test]},
-      {:postgrex, "~> 0.13", optional: true},
-      {:plug_crypto, "~> 1.2.0"}
+      {:postgrex, "~> 0.20.0", optional: true},
+      # broader version range
+      {:plug_crypto, ">= 1.2.0 and < 3.0.0"}
     ]
   end
 
