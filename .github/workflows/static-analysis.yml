@@ -10,7 +10,7 @@ jobs:
   check_duplicate_runs:
     name: Check for duplicate runs
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-26.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -25,14 +25,14 @@ jobs:
 
   dialyzer:
     name: Static code analysis
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-26.04
 
     strategy:
       matrix:
         elixir:
-        - "1.11"
+        - "1.20"
         otp:
-        - "23.0"
+        - "29.0"
 
     steps:
     - name: Checkout
@@ -45,13 +45,13 @@ jobs:
         otp-version: ${{ matrix.otp }}
 
     - name: Restore deps cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: deps
         key: ${{ runner.os }}-mix-{{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
 
     - name: Restore _build cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: _build
         key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
@@ -72,7 +72,7 @@ jobs:
       run: mix deps.compile
 
     - name: Restore Dialyzer cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: priv/plts
         key: ${{ runner.os }}-dialyzer-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}

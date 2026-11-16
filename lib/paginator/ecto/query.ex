@@ -121,9 +121,15 @@ defmodule Paginator.Ecto.Query do
         {position, column}
 
       _ ->
+        # Maps are unordered, while they used to be ordered in older erlang distributions, newer
+        # ones make no guarantees.
+        aliases =
+          Map.to_list(query.aliases)
+          |> Enum.sort()
+
         raise(
           ArgumentError,
-          "Could not find binding `#{binding_name}` in query aliases: #{inspect(query.aliases)}"
+          "Could not find binding `#{binding_name}` in query aliases: #{inspect(aliases)}"
         )
     end
   end
