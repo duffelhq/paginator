@@ -975,17 +975,20 @@ defmodule PaginatorTest do
 
       now = NaiveDateTime.utc_now()
 
-      for k <- 1..50 do
-        if Enum.random([true, false]) do
-          if Enum.random([true, false]) do
-            insert(:payment, customer: customer, charged_at: NaiveDateTime.add(now, k))
-          else
-            insert(:payment, customer: customer, charged_at: NaiveDateTime.add(now, k - 1))
+      Enum.each(1..50, fn k ->
+        charged_at =
+          case :rand.uniform(4) do
+            1 -> nil
+            2 -> nil
+            3 ->
+              NaiveDateTime.add(now, k - 1, :second)
+
+            4 ->
+              NaiveDateTime.add(now, k, :second)
           end
-        else
-          insert(:payment, customer: customer, charged_at: nil)
-        end
-      end
+
+        insert(:payment, customer: customer, charged_at: charged_at)
+      end)
 
       opts = [
         cursor_fields: [charged_at: unquote(field0_order), id: unquote(field1_order)],
@@ -1002,7 +1005,7 @@ defmodule PaginatorTest do
 
       expected =
         query
-        |> Repo.all(opts)
+        |> Repo.all()
         |> to_ids()
 
       after_pagination = paginate_as_list(query, opts)
