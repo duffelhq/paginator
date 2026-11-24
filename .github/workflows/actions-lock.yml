@@ -1,0 +1,25 @@
+# Fails when .github/workflows/actions.lock is out of sync with the workflows,
+# or a locked commit no longer verifies upstream. Fix with `gh actions-lock`.
+name: Actions lockfile
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify actions.lock
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - run: gh extension install github/gh-actions-lock --pin v0.4.1
+      - run: gh actions-lock --verify
