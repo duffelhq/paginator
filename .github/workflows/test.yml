@@ -2,144 +2,77 @@ name: Test
 
 on:
   push:
-  pull_request:
     branches:
       - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  check_duplicate_runs:
-    name: Check for duplicate runs
-    continue-on-error: true
-    runs-on: ubuntu-20.04
-    outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
-    steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@v3.4.0
-        with:
-          concurrent_skipping: always
-          cancel_others: true
-          skip_after_successful_duplicate: true
-          paths_ignore: '["**/README.md", "**/CHANGELOG.md", "**/LICENSE.txt"]'
-          do_not_skip: '["pull_request"]'
-
   test:
     name: Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}
-    runs-on: ubuntu-20.04
-    needs: check_duplicate_runs
-    if: ${{ needs.check_duplicate_runs.outputs.should_skip != 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     services:
       postgres:
-        image: postgres
+        image: postgres:17
         ports:
-        - 5432:5432
+          - 5432:5432
         env:
           POSTGRES_DB: paginator_test
           POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     strategy:
+      fail-fast: false
       matrix:
-        elixir:
-        - "1.7"
-        - "1.8"
-        - "1.9"
-        - "1.10"
-        - "1.11"
-        otp:
-        - "20.0"
-        - "21.0"
-        - "22.0.2"
-        - "23.0"
-        exclude:
-        - elixir: "1.10"
-          otp: "20.0"
-        - elixir: "1.11"
-          otp: "20.0"
-        - elixir: "1.9"
-          otp: "23.0"
-        - elixir: "1.7"
-          otp: "23.0"
-        - elixir: "1.8"
-          otp: "23.0"
+        include:
+          - elixir: "1.13"
+            otp: "24.3"
+          - elixir: "1.14"
+            otp: "25.3"
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
-    - name: Set up Elixir
-      uses: erlef/setup-beam@v1
-      with:
-        elixir-version: ${{ matrix.elixir }}
-        otp-version: ${{ matrix.otp }}
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
 
-    - name: Restore build and deps caches
-      uses: actions/cache@v2
-      with:
-        path: |
-          deps
-          _build
-        key: ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}
+      - name: Restore build and deps caches
+        uses: actions/cache@v6
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}
 
-    - name: Install package dependencies
-      run: mix deps.get
+      - name: Install package dependencies
+        run: mix deps.get
 
-    - name: Remove compiled application files
-      run: mix clean
+      - name: Remove compiled application files
+        run: mix clean
 
-    - name: Compile dependencies
-      run: mix compile
-      env:
-        MIX_ENV: test
+      - name: Compile
+        run: mix compile
+        env:
+          MIX_ENV: test
 
-    - name: Run unit tests
-      run: mix test
-
-  inch:
-    name: Analyse Documentation
-    runs-on: ubuntu-20.04
-    needs: test
-
-    strategy:
-      matrix:
-        elixir:
-        - "1.11"
-        otp:
-        - "23.0"
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Set up Elixir
-      uses: erlef/setup-beam@v1
-      with:
-        elixir-version: ${{ matrix.elixir }}
-        otp-version: ${{ matrix.otp }}
-
-    - name: Restore build and deps caches
-      uses: actions/cache@v2
-      with:
-        path: |
-          deps
-          _build
-        key: ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-deps-${{ matrix.otp }}-${{ matrix.elixir }}
-
-    - name: Install package dependencies
-      run: mix deps.get
-
-    - name: Remove compiled application files
-      run: mix clean
-
-    - name: Compile dependencies
-      run: mix compile
-
-    - name: Check documentation quality locally
-      run: mix inch
-
-    - name: Report documentation quality
-      if: github.event_name == 'push'
-      run: mix inch.report
+      - name: Run unit tests
+        run: mix test
