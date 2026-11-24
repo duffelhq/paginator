@@ -1,5 +1,14 @@
 # Paginator
 
+> ⚠️ This is a fork of the original [paginator](https://github.com/duffelhq/paginator) library.
+>
+> The only change made in this fork is updating the `plug_crypto` dependency to `~> 2.0`
+> to ensure compatibility with modern Elixir projects using newer Plug stack.
+>
+> No functional or API-level changes have been made. Safe to use as a drop-in replacement.
+>
+> Fork maintained by [@hsnyildiz](https://github.com/hsnyildiz).
+
 [![Build status](https://github.com/duffelhq/paginator/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/duffelhq/paginator/actions?query=branch%3Amain)
 [![Module Version](https://img.shields.io/hexpm/v/paginator.svg)](https://hex.pm/packages/paginator)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/paginator/)
